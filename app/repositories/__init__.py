@@ -1,11 +1,13 @@
-"""数据访问层（Repository）。
+"""Data access layer.
 
-这一层的**唯一职责**是「和数据库打交道」：发出 SQL、把结果转成对象。
-它不做校验、不做业务判断、不控制事务——那些都是 Service 层的事。
+Its only job is talking to the database: issuing SQL and turning rows into objects. It
+does no validation, takes no business decisions and controls no transactions -- those
+belong to the service layer.
 
-为什么要有这一层，而不是让 Service 直接写 SQL？因为两者的变化原因不同：
-换数据库、改表结构、优化查询只影响这里；改业务流程只影响 Service。
-混在一起写，任何一点改动都会牵动全部代码。
+Keeping the two apart matters because they change for different reasons. Swapping the
+database, altering a table or tuning a query touches only this layer; changing a business
+rule touches only the services. Mixed together, either kind of change drags in the rest.
 
-命名约定：读方法以 get_/list_/count_ 开头，写方法以 create_/update_/delete_ 开头。
+Read methods are named ``get_*``/``list_*``/``count_*``, write methods ``create_*``/
+``update_*``/``delete_*``.
 """

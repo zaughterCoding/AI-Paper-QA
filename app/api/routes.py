@@ -1,13 +1,9 @@
-"""HTTP 路由。
+"""HTTP routes.
 
-这一层只做三件事，多一件都不做：
-
-1. 解析请求（交给 pydantic schema）
-2. 调用 service
-3. 把结果/异常翻译成 HTTP（状态码、JSON）
-
-它不写 SQL、不做业务判断、不控制事务——`session.commit()` 在 service 里，
-所以路由里看不到 commit，这不是遗漏，是分层的结果。
+This layer does three things and no more: parse the request (via the pydantic schemas),
+call a service, and translate the result or the exception into HTTP. It writes no SQL and
+makes no business decisions. ``session.commit()`` lives in the services, so the absence of
+a commit here is a consequence of the layering rather than an omission.
 """
 
 from typing import Annotated
@@ -31,30 +27,27 @@ router = APIRouter()
 
 @router.get("/health")
 def health_check() -> dict[str, str]:
-    """存活探针：只回答「服务进程还在不在」，不检查数据库。"""
+    """Liveness probe: is the process up? Deliberately does not touch the database."""
     return {"status": "ok"}
 
 
 @router.post("/documents", status_code=status.HTTP_201_CREATED)
 def create_document(
     payload: DocumentCreateRequest,
-    # Annotated[Session, Depends(...)] 是 FastAPI 现在推荐的写法。
-    # 老写法 session: Session = Depends(get_db_session) 也能跑，但它把
-    # 一个函数调用放在了默认值的位置——那在 Python 里通常是 bug 的温床
-    # （默认值只在定义时求值一次）。Annotated 把这个信息挪回类型位置。
+    # Annotated[Session, Depends(...)] is the current FastAPI style. The older
+    # `session: Session = Depends(...)` also works, but it puts a function call in a
+    # default-value position, which Python evaluates once at definition time, and
+    # Annotated keeps that information in the type where it belongs.
     session: Annotated[Session, Depends(get_db_session)],
     embedding_client: Annotated[EmbeddingClient, Depends(get_embedding_client)],
 ) -> DocumentCreateResponse:
-    """导入一篇文档，并给它的片段生成向量。
+    """Import a document and embed its chunks.
 
-    **两步，两个事务**（见 app/services/indexing.py 顶部的说明）：
-
-        1. ingest  → 文档和片段入库（只有文本）
-        2. index   → 给片段补上向量
-
-    分开的后果是：如果第 2 步失败，**文档已经存下来了**。这时请求会返回 500，
-    但数据没白丢——客户端重新提交同样的内容会走到"重复导入"分支，
-    索引会再跑一次并补上缺失的向量。也就是说这个接口是**自愈**的。
+    Two steps, two transactions: ingest stores the document and its chunks as text, then
+    indexing fills in the vectors. Because they are separate, a failure in the second step
+    leaves the document stored -- the request returns 500, but the data is not wasted.
+    Resubmitting the same content takes the "already imported" path and runs indexing
+    again, which fills in the missing vectors, so the endpoint is self-healing.
     """
     service = DocumentIngestionService(session)
 
@@ -63,18 +56,17 @@ def create_document(
             title=payload.title, source=payload.source, content=payload.content
         )
     except ValueError as exc:
-        # service 抛的是 ValueError（它不知道 HTTP 是什么），
-        # 由这一层翻译成状态码——"业务异常 → HTTP 语义"的映射是 API 层的职责。
-        # 用 422 而不是 400，是为了和 pydantic 的校验错误保持一致：
-        # 客户端不需要区分"这个字段格式不对"和"这个字段内容不合法"，
-        # 两者都是"请求能读懂，但内容不接受"。
+        # The service raises ValueError because it knows nothing about HTTP; mapping a
+        # business error onto a status code is this layer's job. 422 rather than 400 keeps
+        # it consistent with pydantic's validation errors, since the client does not need
+        # to distinguish a malformed field from an unacceptable one.
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
         ) from exc
 
-    # 显式调用索引，而不是让 ingest 内部悄悄做掉——"谁负责编码"在代码里看得见。
-    # 这里不 try/except：索引失败就应该 500，绝不能吞掉异常返回一个
-    # "看起来成功、实际没有向量"的 201。那正是 F-39 藏了那么久的原因。
+    # Indexing is called explicitly rather than hidden inside ingest, so that "who does
+    # the encoding" is visible in the code. It is not wrapped in try/except: an indexing
+    # failure should be a 500, never a 201 that looks successful while no vectors exist.
     indexing = IndexingService(session, embedding_client).index_document(result.document_id)
 
     return DocumentCreateResponse(
@@ -89,6 +81,6 @@ def create_document(
 def list_documents(
     session: Annotated[Session, Depends(get_db_session)],
 ) -> list[DocumentListItem]:
-    """列出已导入的文档，最新的在前。"""
+    """Every imported document, newest first."""
     documents = DocumentRepository(session).list_documents()
     return [DocumentListItem.model_validate(document) for document in documents]

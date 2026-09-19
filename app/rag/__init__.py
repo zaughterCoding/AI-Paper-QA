@@ -1,5 +1,5 @@
-"""RAG 相关的纯逻辑：切分、embedding、LLM 调用。
+"""Pure RAG logic: chunking, embedding and LLM calls.
 
-这个包里放的都是**不碰数据库**的组件，所以它们最容易测试，也最容易被替换
-（比如换掉 embedding 模型或换一家 LLM，改动都局限在这个目录内）。
+Nothing here touches the database, which is what makes these components easy to test
+and easy to replace.
 """

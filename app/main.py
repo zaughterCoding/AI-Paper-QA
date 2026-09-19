@@ -4,9 +4,9 @@ from app.api.routes import router
 
 
 def create_app() -> FastAPI:
-    """创建 FastAPI 应用实例。
+    """Build the application.
 
-    用工厂函数而不是模块级 app，是为了让测试可以反复创建互相隔离的应用实例。
+    A factory rather than a module-level app, so tests can create isolated instances.
     """
     app = FastAPI(title="AI Paper QA Backend")
     app.include_router(router)

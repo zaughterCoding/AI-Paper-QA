@@ -1,11 +1,9 @@
-"""业务服务层（Service）。
+"""Business services.
 
-一个 service 的一次方法调用 = 一个完整的业务动作（"导入一篇文档"、
-"回答一个问题"），它负责：
+One method call is one complete business action ("ingest a document", "answer a
+question"). A service validates business rules, coordinates several repositories, and
+decides where transactions begin and end.
 
-1. 校验业务规则（标题不能空、内容不能空）
-2. 编排多个 repository（先插文档，再插片段）
-3. 决定事务边界（什么时候 commit、失败了怎么回滚）
-
-API 层调用它、脚本调用它、将来的评估脚本也调用它——业务逻辑只有这一份。
+The API layer calls it, scripts call it, and evaluation code will call it: there is only
+one copy of the business logic.
 """

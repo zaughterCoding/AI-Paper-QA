@@ -9,26 +9,26 @@ __pycache__/
 build/
 dist/
 
-# 虚拟环境
+# Virtual environments
 .venv/
 venv/
 
-# 环境变量（真实密钥不提交）
+# Environment variables (real secrets are not committed)
 .env
 
-# 测试与工具缓存
+# Test and tool caches
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
 .coverage
 htmlcov/
 
-# 本地数据库数据目录
+# Local database data directory
 pgdata/
 
-# 编辑器
+# Editors
 .idea/
 .vscode/
 
-# 学习文档
+# Local notes
 docs/
