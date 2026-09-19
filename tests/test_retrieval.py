@@ -1,7 +1,16 @@
-"""向量检索的测试（Task 8：只测 repository 层）。
+"""向量检索的测试（Task 8 的 repository 层 + Task 9 的 service 层）。
 
-这一层是 RAG 的**取数环节**：给一个查询向量，从库里找出最相似的 top_k 个片段。
-它不负责"把问题变成向量"（Task 9 的 RetrievalService 才做那件事）。
+检索在代码里分成两层，失败方式完全不同：
+
+    RetrievalService.retrieve(question)         ← service：问题 → 向量 → 片段
+        └── ChunkRepository.search_similar()    ← repository：向量 → 片段
+
+- **repository 层**测的是 *SQL 写对没有*：排序方向、NULL 过滤、JOIN 不扇出。
+  写错的表现是**返回错误的片段**，通常能一眼看出来。
+- **service 层**测的是 *编排对不对*：校验在不在编码之前、每件事各做几次。
+  写错的表现往往是**结果看起来完全正常**，只是多编码了一次问题、
+  或者对空问题白白调了一次模型。这类问题不会有任何症状，
+  只会在账单和耗时才看得出来——所以只能靠测试钉住。
 
 关于测试数据的一个关键决定：**用 384 维的真实维度，不用 3 维假向量**。
 计划书原本建议"用假 3 维向量"，但 `chunks.embedding` 列的类型写死了 `vector(384)`，
@@ -20,6 +29,7 @@ from sqlalchemy.orm import Session
 
 from app.models.tables import Chunk, Document
 from app.repositories.chunks import ChunkRepository, RetrievedChunk
+from app.services.retrieval import DEFAULT_TOP_K, MAX_TOP_K, RetrievalService
 from tests.fakes import FakeEmbeddingClient
 
 
@@ -263,3 +273,276 @@ def test_update_embedding_raises_for_unknown_chunk(repo, embedder) -> None:
     """
     with pytest.raises(ValueError):
         repo.update_embedding(uuid.uuid4(), embedder.embed_text("self attention"))
+
+
+# --- 检索服务（Task 9）-------------------------------------------------------
+#
+# 这一组测的不是"能不能查出正确的片段"（上面已经测过了），而是**编排**：
+# 校验在不在编码之前、每件事各做几次、参数有没有原样传下去。
+#
+# 为什么值得单独测：这类错误**没有症状**。多编码一次问题，结果一模一样，
+# 只是慢了一倍、贵了一倍；漏了校验，空问题也照样能返回一堆片段。
+# 靠肉眼和手工验收都发现不了，只能靠把次数钉死。
+
+
+class _CountingEmbeddingClient:
+    """包住假客户端，记录每次编码用的文本。
+
+    为什么不用 mock 库：这里只需要"记下来"这一个动作，
+    一个三行的类比 `Mock()` 加一串断言更直白，而且它**保留真实行为**——
+    返回值仍然是那个能被检索命中的哈希向量，所以同一个替身既能计数
+    又能当正常客户端用。
+    """
+
+    def __init__(self) -> None:
+        self._inner = FakeEmbeddingClient()
+        self.encoded_texts: list[str] = []
+
+    def embed_text(self, text: str) -> list[float]:
+        self.encoded_texts.append(text)
+        return self._inner.embed_text(text)
+
+    def embed_texts(self, texts: list[str]) -> list[list[float]]:
+        self.encoded_texts.extend(texts)
+        return self._inner.embed_texts(texts)
+
+
+class _SearchSpy:
+    """包住 `search_similar`，记录每次调用的参数。
+
+    为什么用"包一层"而不是 monkeypatch 整个类：
+    `RetrievalService.__init__` 里自己 new 了一个 `ChunkRepository`
+    （和 `IndexingService` 的写法一致），外面拿不到那个实例。
+    但 **Python 查找实例属性优先于类属性**，所以给 `service.chunks` 这个实例
+    挂一个同名属性就能拦住调用，同时 `_original` 仍然是真正的方法——
+    查库逻辑照常执行，只是多记了一笔。
+    """
+
+    def __init__(self, repository: ChunkRepository) -> None:
+        self._original = repository.search_similar
+        self.calls: list[dict] = []
+
+    def __call__(self, query_embedding: list[float], top_k: int) -> list[RetrievedChunk]:
+        self.calls.append({"query_embedding": query_embedding, "top_k": top_k})
+        return self._original(query_embedding=query_embedding, top_k=top_k)
+
+
+@pytest.fixture
+def counter() -> _CountingEmbeddingClient:
+    return _CountingEmbeddingClient()
+
+
+@pytest.fixture
+def service(db_session: Session, counter: _CountingEmbeddingClient) -> RetrievalService:
+    return RetrievalService(db_session, counter)
+
+
+@pytest.fixture
+def search_spy(service: RetrievalService) -> _SearchSpy:
+    spy = _SearchSpy(service.chunks)
+    service.chunks.search_similar = spy  # type: ignore[method-assign]
+    return spy
+
+
+def seed_chunks(db_session: Session, embedder: FakeEmbeddingClient) -> None:
+    """一篇文档、三个主题不同的片段。"""
+    document = make_document(db_session)
+    for index, text in enumerate(
+        ["banana bread recipe", "self attention mechanism", "gradient descent optimizer"]
+    ):
+        add_chunk(db_session, document, index, text, embedder.embed_text(text))
+
+
+# --- 校验 --------------------------------------------------------------------
+
+
+def test_retrieve_rejects_an_empty_question(service) -> None:
+    with pytest.raises(ValueError, match="must not be empty"):
+        service.retrieve("")
+
+
+def test_retrieve_rejects_a_whitespace_only_question(service) -> None:
+    """只输入空格 / 换行的"空问题"同样没有语义。
+
+    直接判 `not question` 会漏掉它们——字符串本身非空，但编码出来的向量
+    要么是全零（和任何向量都没有意义明确的相似度），要么只反映标点。
+    """
+    with pytest.raises(ValueError, match="must not be empty"):
+        service.retrieve("   \n\t  ")
+
+
+@pytest.mark.parametrize("top_k", [0, -1, -100, MAX_TOP_K + 1, 1000])
+def test_retrieve_rejects_top_k_out_of_range(service, top_k: int) -> None:
+    with pytest.raises(ValueError, match="top_k must be between"):
+        service.retrieve("self attention", top_k=top_k)
+
+
+@pytest.mark.parametrize("top_k", [1, DEFAULT_TOP_K, MAX_TOP_K])
+def test_retrieve_accepts_top_k_within_range(db_session, embedder, counter, top_k: int) -> None:
+    """边界值本身必须是合法的。
+
+    只测"超界的要报错"是不够的——把上限写成 0 也能让那条测试通过，
+    但服务就再也检索不了任何东西了。这是 H 变异（Task 8c）留下的教训：
+    **越界的检查必须配一条界内的检查**，否则阈值本身写错也没人发现。
+    """
+    seed_chunks(db_session, embedder)
+
+    assert len(RetrievalService(db_session, counter).retrieve("self attention", top_k=top_k)) <= top_k
+
+
+# --- 编排：调用次数与顺序 ----------------------------------------------------
+
+
+def test_retrieve_embeds_the_question_exactly_once(db_session, embedder, counter) -> None:
+    """问题只编码一次。
+
+    多编码一次在结果上**完全看不出来**，只是每次提问都白等一次模型前向、
+    多付一次钱。这类"结果正确但成本翻倍"的问题没有任何症状，
+    只有把次数钉死才拦得住。
+    """
+    seed_chunks(db_session, embedder)
+
+    RetrievalService(db_session, counter).retrieve("self attention")
+
+    assert counter.encoded_texts == ["self attention"]
+
+
+def test_retrieve_searches_the_database_exactly_once(db_session, embedder, service, search_spy) -> None:
+    """查库也只查一次——不能"先查一次看看，再查一次取结果"。
+
+    注意这里用的是 `service` / `search_spy` 两个 fixture（后者在前者身上挂 spy），
+    不能自己另 new 一个 service——那样 spy 挂在一个没人用的实例上，
+    断言永远是 0，测试会"通过"但什么都没验证。
+    """
+    seed_chunks(db_session, embedder)
+
+    service.retrieve("self attention")
+
+    assert len(search_spy.calls) == 1
+
+
+def test_retrieve_passes_the_question_to_the_embedder_unchanged(db_session, embedder, counter) -> None:
+    """送去编码的是调用方给的原字符串，没有被 strip / 截断 / 改写。
+
+    保留原样是为了**可复现**：出问题时能拿同一个字符串重跑，
+    不用猜中间那一层动过什么。
+    """
+    seed_chunks(db_session, embedder)
+
+    RetrievalService(db_session, counter).retrieve("  self attention  ")
+
+    assert counter.encoded_texts == ["  self attention  "]
+
+
+def test_retrieve_forwards_top_k_to_the_repository(db_session, embedder, counter) -> None:
+    """top_k 必须原样传下去，不能被吞掉、也不能被写死成默认值。"""
+    seed_chunks(db_session, embedder)
+    service = RetrievalService(db_session, counter)
+    spy = _SearchSpy(service.chunks)
+    service.chunks.search_similar = spy  # type: ignore[method-assign]
+
+    service.retrieve("self attention", top_k=2)
+
+    assert spy.calls[0]["top_k"] == 2
+
+
+def test_retrieve_uses_the_default_top_k_when_omitted(db_session, embedder, counter) -> None:
+    """不传 top_k 时用的是 DEFAULT_TOP_K，而不是"全部返回"。"""
+    seed_chunks(db_session, embedder)
+    document = make_document(db_session, content_hash="b" * 64)
+    for index in range(DEFAULT_TOP_K + 3):
+        text = f"self attention variant {index}"
+        add_chunk(db_session, document, index, text, embedder.embed_text(text))
+
+    results = RetrievalService(db_session, counter).retrieve("self attention")
+
+    assert len(results) == DEFAULT_TOP_K
+
+
+def test_retrieve_validates_the_question_before_encoding(service, counter) -> None:
+    """空问题的校验必须发生在编码**之前**。
+
+    顺序反了的话，一个没有语义的问题照样会占用一次模型前向——
+    而且某些模型对空字符串返回全零向量，检索会返回一堆看似随机的片段，
+    把"输入不合法"伪装成"检索质量差"。
+    """
+    with pytest.raises(ValueError):
+        service.retrieve("")
+
+    assert counter.encoded_texts == []
+
+
+def test_retrieve_validates_top_k_before_encoding(db_session, embedder, counter) -> None:
+    """top_k 越界同样要在编码之前拦下——理由同上。"""
+    seed_chunks(db_session, embedder)
+
+    with pytest.raises(ValueError):
+        RetrievalService(db_session, counter).retrieve("self attention", top_k=0)
+
+    assert counter.encoded_texts == []
+
+
+def test_retrieve_does_not_commit(db_session, embedder, counter, monkeypatch) -> None:
+    """检索是**只读**操作，不该提交事务。
+
+    这条不是吹毛求疵：Task 11 的 Ask API 会在一个请求里同时用这个 session
+    做检索（将来还要写 QA 日志）。检索路径里混进一次 commit，
+    事务边界就不再是调用方说了算了。
+    """
+
+    def fail() -> None:
+        raise AssertionError("retrieve() 不该提交事务")
+
+    seed_chunks(db_session, embedder)
+    monkeypatch.setattr(db_session, "commit", fail)
+
+    assert RetrievalService(db_session, counter).retrieve("self attention")
+
+
+# --- 端到端：结果本身 --------------------------------------------------------
+
+
+def test_retrieve_returns_chunks_ordered_by_similarity(db_session, embedder, counter) -> None:
+    """把两层接起来跑一遍：问题经过编码、查库，回到最相关的片段。"""
+    seed_chunks(db_session, embedder)
+
+    results = RetrievalService(db_session, counter).retrieve("self attention layer", top_k=3)
+
+    assert [result.text for result in results][0] == "self attention mechanism"
+    scores = [result.score for result in results]
+    assert scores == sorted(scores, reverse=True)
+
+
+def test_retrieve_spans_multiple_documents(db_session, embedder, counter) -> None:
+    """检索是全局的：答案可以在任何一篇文档里。
+
+    这是这一层存在的意义——问题不绑定到某一篇文档，
+    用户也不需要知道答案在哪篇里。
+    """
+    first = make_document(db_session, title="Paper A", content_hash="a" * 64)
+    second = make_document(db_session, title="Paper B", content_hash="b" * 64)
+    add_chunk(db_session, first, 0, "banana bread recipe", embedder.embed_text("banana bread recipe"))
+    add_chunk(db_session, second, 0, "self attention", embedder.embed_text("self attention"))
+
+    results = RetrievalService(db_session, counter).retrieve("self attention", top_k=5)
+
+    assert results[0].title == "Paper B"
+
+
+def test_retrieve_returns_empty_list_on_an_empty_database(service) -> None:
+    """库里什么都没有时返回空列表，而不是抛异常。
+
+    "没找到"和"出错了"是两回事：前者是一个正常的业务结果
+    （语料还没导入、问题问的是语料之外的东西），
+    后者才是需要调用方处理的情况。混成一种，上层就没法区分
+    "该告诉用户没找到"还是"该报警"。
+    """
+    assert service.retrieve("self attention") == []
+
+
+def test_retrieve_ignores_chunks_without_vectors(db_session, embedder, counter) -> None:
+    """还没回填向量的片段不能被检索到——这层不能绕过 repository 的过滤。"""
+    document = make_document(db_session)
+    add_chunk(db_session, document, 0, "self attention", embedding=None)
+
+    assert RetrievalService(db_session, counter).retrieve("self attention") == []
