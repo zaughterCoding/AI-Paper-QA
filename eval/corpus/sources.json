@@ -1,0 +1,51 @@
+{
+  "generated_by": "scripts/fetch_corpus.py",
+  "note": "正文来自 arXiv 官方 HTML 版。已剔除参考文献、作者区、页面导航、图注和表格；公式保留其 LaTeX 源码（轻度清洗过），没有渲染成数学排版。",
+  "papers": [
+    {
+      "slug": "attention-is-all-you-need",
+      "arxiv_id": "1706.03762",
+      "title": "Attention Is All You Need",
+      "url": "https://arxiv.org/abs/1706.03762",
+      "version": "arXiv:1706.03762v7 [cs.CL] 02 Aug 2023",
+      "file": "attention-is-all-you-need.txt",
+      "characters": 25059
+    },
+    {
+      "slug": "bert",
+      "arxiv_id": "1810.04805",
+      "title": "BERT: Pre-training of Deep Bidirectional Transformers",
+      "url": "https://arxiv.org/abs/1810.04805",
+      "version": "arXiv:1810.04805v2 [cs.CL] 24 May 2019",
+      "file": "bert.txt",
+      "characters": 30692
+    },
+    {
+      "slug": "retrieval-augmented-generation",
+      "arxiv_id": "2005.11401",
+      "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "url": "https://arxiv.org/abs/2005.11401",
+      "version": "arXiv:2005.11401v4 [cs.CL] 12 Apr 2021",
+      "file": "retrieval-augmented-generation.txt",
+      "characters": 31286
+    },
+    {
+      "slug": "dense-passage-retrieval",
+      "arxiv_id": "2004.04906",
+      "title": "Dense Passage Retrieval for Open-Domain Question Answering",
+      "url": "https://arxiv.org/abs/2004.04906",
+      "version": "arXiv:2004.04906v3 [cs.CL] 30 Sep 2020",
+      "file": "dense-passage-retrieval.txt",
+      "characters": 33907
+    },
+    {
+      "slug": "sentence-bert",
+      "arxiv_id": "1908.10084",
+      "title": "Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks",
+      "url": "https://arxiv.org/abs/1908.10084",
+      "version": "arXiv:1908.10084v1 [cs.CL] 27 Aug 2019",
+      "file": "sentence-bert.txt",
+      "characters": 26564
+    }
+  ]
+}
