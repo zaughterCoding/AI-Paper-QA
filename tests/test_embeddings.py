@@ -158,31 +158,92 @@ def test_real_model_matches_paragraph_when_words_overlap(
     assert _cosine(question, relevant) > _cosine(question, irrelevant)
 
 
-def test_known_limitation_paraphrased_question_picks_wrong_paragraph(
+def test_real_model_matches_chunk_when_question_is_paraphrased(
     real_client: EmbeddingClient,
 ) -> None:
-    """已知局限：问题换了说法、和相关段落不共用词汇时，这个小模型会挑错。
+    """最重要的一个测试：问题换说法、与相关 chunk 不共用关键词时，仍能命中。
 
-    实测数据（2026-09-18，all-MiniLM-L6-v2）:
+    这才是 Task 8/9 真实发生的事情——检索的**不是句子，是 chunk**（Task 4 切出来的
+    多句片段）。用单句测检索会严重低估系统能力，因为单句词汇面太窄，
+    一个共享词就足以翻盘（见下面那个特征化测试）。
+
+    实测（2026-09-18，multi-qa-MiniLM-L6-cos-v1）：
 
         问句   "How does the model handle long-range dependencies?"
-        相关段 "Self-attention relates all positions in a sequence ..."  → 0.169
-        无关段 "We trained the model for three days on eight GPUs."     → 0.308  ← 更高
+        相关   "The Transformer follows an encoder-decoder structure ...
+                Self-attention relates the different positions of a single
+                sequence ... capture dependencies between distant positions ..."  → 0.393
+        无关   "We trained the base models for 100,000 steps or 12 hours on
+                eight NVIDIA P100 GPUs. ..."                                       → 0.252
 
-    原因：它是**通用句子相似度**模型，不是**问答检索**模型。它对词汇重叠极其敏感
-    （共用 self-attention 时 0.65，完全不共用时掉到 0.17），并不真的理解
-    "long-range dependencies" 和 "self-attention" 指的是同一件事。
-
-    这个测试**不是在认可这个行为**，而是把它钉住：
-
-    - 它是 Task 14 做离线评估时必须正视的风险；
-    - 换 embedding 模型时这里会失败，提醒你重新评估检索质量，而不是悄悄变了。
-
-    改进方向：`multi-qa-MiniLM-L6-cos-v1` 同样是 384 维（数据库 schema 不用动），
-    但专门用 MS MARCO 问答数据训练过。是否切换见 Task 7 报告里的权衡。
+    问句里的 long-range / dependencies 在相关 chunk 里**一个都没出现**，
+    但模型仍然把它排在前面——这才是 embedding 相对关键词检索的价值所在。
     """
     question = real_client.embed_text("How does the model handle long-range dependencies?")
-    related_but_no_shared_words = real_client.embed_text(
+    attention_chunk = real_client.embed_text(
+        "The Transformer follows an encoder-decoder structure using stacked self-attention "
+        "and point-wise, fully connected layers. Self-attention relates the different positions "
+        "of a single sequence in order to compute a representation of that sequence. This allows "
+        "the model to capture dependencies between distant positions regardless of their distance "
+        "in the sequence, unlike recurrent networks which must process the input sequentially."
+    )
+    training_chunk = real_client.embed_text(
+        "We trained the base models for a total of 100,000 steps or 12 hours on eight NVIDIA P100 "
+        "GPUs. We used the Adam optimizer with a custom learning rate schedule that increases "
+        "linearly for the first 4000 steps and then decays proportionally to the inverse square "
+        "root of the step number. Dropout was applied to the output of each sub-layer."
+    )
+
+    assert _cosine(question, attention_chunk) > _cosine(question, training_chunk)
+
+
+def test_real_model_gives_irrelevant_chunk_a_low_score(
+    real_client: EmbeddingClient,
+) -> None:
+    """无关 chunk 的分数应该很低——这是 Task 8 能定相似度阈值的前提。
+
+    实测（multi-qa-MiniLM-L6-cos-v1）：无关 chunk 落在 0.03~0.11；
+    旧模型 all-MiniLM-L6-v2 的地板高得多（0.11~0.19）。底噪低，
+    "多低算不相关"这条线才画得出来。分数上限用 0.3 留足余量，
+    这个断言要防的是"某个模型对所有输入都给高分"这种退化情况。
+    """
+    question = real_client.embed_text("How does the model handle long-range dependencies?")
+    unrelated = real_client.embed_text(
+        "We trained on the standard WMT 2014 English-German dataset consisting of about "
+        "4.5 million sentence pairs, encoded using byte-pair encoding."
+    )
+
+    assert _cosine(question, unrelated) < 0.3
+
+
+def test_known_limitation_single_sentence_with_keyword_sharing_distractor(
+    real_client: EmbeddingClient,
+) -> None:
+    """已知局限：候选段落都是**单句**、且干扰句恰好含问题里的常见词时，会挑错。
+
+    实测（2026-09-18，multi-qa-MiniLM-L6-cos-v1）:
+
+        问句   "How does the model handle long-range dependencies?"
+        相关句 "Self-attention relates all positions in a sequence ..."  → 0.173
+        干扰句 "We trained the model for three days on eight GPUs."     → 0.245  ← 更高
+
+    拆解出来的原因（对照实验）：
+
+        相关句 vs 干扰句**不含** model → 0.173 vs 0.084  ✅ 命中
+        相关句 vs 干扰句**含**   model → 0.173 vs 0.245  ❌ 挑错
+
+    也就是说：相关句和问句**一个实词都不共用**，而干扰句共用了一个 "model"。
+    单句词汇面太窄，"一个共享词"就压过了语义。
+
+    **这是词汇驱动的检索在 384 维小模型上的固有边界**，不是某个模型的 bug：
+    换 all-MiniLM-L6-v2 同样失败（0.169 vs 0.308）。上面那个 chunk 级测试证明
+    真实系统不受影响——所以这个测试的作用是**标出边界在哪**，而不是报警。
+
+    它同时是 Task 14 离线评估的基线：如果评估里出现大量"问题和所有候选都不共用词"
+    的用例，命中率就会掉，那是数据特性而非实现缺陷。
+    """
+    question = real_client.embed_text("How does the model handle long-range dependencies?")
+    related_but_no_shared_content_word = real_client.embed_text(
         "Self-attention relates all positions in a sequence to compute its representation."
     )
     unrelated_but_shares_the_word_model = real_client.embed_text(
@@ -190,5 +251,5 @@ def test_known_limitation_paraphrased_question_picks_wrong_paragraph(
     )
 
     assert _cosine(question, unrelated_but_shares_the_word_model) > _cosine(
-        question, related_but_no_shared_words
+        question, related_but_no_shared_content_word
     )

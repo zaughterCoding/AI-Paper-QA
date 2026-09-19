@@ -15,7 +15,11 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/paperqa"
 
     # --- Embedding ---
-    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    # 选它而不是 all-MiniLM-L6-v2：同样是 384 维（schema 不用改），但它是**问答检索**
+    # 模型（2.15 亿条 question-passage 对训练），不是通用句子相似度模型。
+    # 实测见 docs/Task7_Embedding_Client.md：无关 chunk 的相似度被压到 0.03~0.11，
+    # 而旧模型的地板高得多（0.11~0.19），噪音底噪低才好定检索阈值。
+    embedding_model: str = "sentence-transformers/multi-qa-MiniLM-L6-cos-v1"
 
     # --- LLM（OpenAI 兼容接口，默认 DeepSeek）---
     llm_provider: str = "deepseek"
