@@ -1,13 +1,9 @@
-"""索引服务（向量回填）的测试。
+"""Indexing service (vector backfill) tests.
 
-这个服务补的是设计书数据流的第 4、5 步——"生成 embedding"和"保存向量"。
-它掉进过 Task 5 与 Task 8 之间的缝里（见 F-39），这组测试就是把它钉住。
-
-和 test_retrieval.py 的分工：
-- test_retrieval.py 测的是"给定向量，能不能查对"（读路径）
-- 这里测的是"文本能不能变成向量并正确落库"（写路径）
-两者在 `test_index_document_makes_chunks_searchable` 里合流——
-回填的**唯一意义**就是让片段能被检索到。
+This covers the write path, text becoming vectors that are stored correctly, while
+test_retrieval.py covers the read path, finding the right chunk for a given vector. They
+meet in `test_index_document_makes_chunks_searchable`, since making chunks retrievable is
+the only point of the backfill.
 """
 
 import uuid
@@ -65,11 +61,11 @@ def add_chunk(
 
 
 def embedding_of(session: Session, chunk: Chunk) -> list[float] | None:
-    """从数据库重新读一个片段的向量（不信内存里的对象）。
+    """Read a chunk's vector back from the database rather than from memory.
 
-    `expire()` 让 SQLAlchemy 把这个对象标记为"过期"，下次访问属性时**重新查库**。
-    没有这一步，读到的可能只是刚才写进内存、还没落库的值——
-    那等于在验证自己刚写的代码，而不是验证"数据真的进数据库了"。
+    `expire()` marks the object stale so the next attribute access queries again.
+    Without it the value read could be the one just written in memory, which would only
+    prove the test's own write rather than that the data reached the database.
     """
     session.expire(chunk)
     stored = session.get(Chunk, chunk.id)
@@ -78,11 +74,11 @@ def embedding_of(session: Session, chunk: Chunk) -> list[float] | None:
 
 
 def count_pending(session: Session) -> int:
-    """全库还有多少个片段没有向量。"""
+    """How many chunks in the whole database still have no vector."""
     return len(ChunkRepository(session).list_without_embedding())
 
 
-# --- repository：找出待回填的片段 ---------------------------------------------
+# --- repository: finding chunks to backfill -----------------------------------
 
 
 def test_list_without_embedding_skips_chunks_that_already_have_vectors(db_session, repo) -> None:
@@ -106,14 +102,11 @@ def test_list_without_embedding_can_be_limited_to_one_document(db_session, repo)
 
 
 def test_list_without_embedding_returns_a_deterministic_order(db_session, repo) -> None:
-    """顺序必须确定，且与插入顺序无关。
+    """The order must be deterministic and independent of insertion order.
 
-    不写 ORDER BY 时，PostgreSQL 返回行的顺序是**未定义的**——取决于物理存储、
-    并行扫描、甚至缓存命中情况，同一个查询两次跑可能给出不同顺序。
-    对回填本身这无所谓，但对**测试**影响很大：断言"哪条先被写入"会随机失败。
-
-    这里故意乱序插入（3, 1, 2, 0），断言输出一定是 0, 1, 2, 3；
-    如果实现里没有 ORDER BY，这条会不稳定地红。
+    Without ORDER BY, PostgreSQL row order is undefined, so which chunk gets written first
+    would be a flaky assertion. Rows are inserted out of order (3, 1, 2, 0) and must come
+    back as 0, 1, 2, 3; without the ORDER BY this fails intermittently.
     """
     document = make_document(db_session)
     for index in (3, 1, 2, 0):
@@ -132,7 +125,7 @@ def test_count_all_counts_every_chunk_regardless_of_embedding(db_session, repo) 
     assert repo.count_all() == 2
 
 
-# --- 基本行为 ----------------------------------------------------------------
+# --- basic behaviour ----------------------------------------------------------
 
 
 def test_index_document_writes_vectors_for_all_chunks(db_session, service, embedder) -> None:
@@ -149,11 +142,8 @@ def test_index_document_writes_vectors_for_all_chunks(db_session, service, embed
 
 
 def test_index_document_returns_result_with_both_counts(db_session, service) -> None:
-    """结果必须能区分"没有待办"和"文档不存在"。
-
-    这是 F-39 教训的另一面：一个只返回 embedded_count 的接口，
-    会把"这篇文档是空的"和"这篇文档早就索引过了"显示成同一个 0。
-    """
+    """The result has to tell "nothing pending" apart from "document missing"; a result
+    carrying only the embedded count reports both as 0."""
     document = make_document(db_session)
     add_chunk(db_session, document, 0, "already done", embedding=[0.1] * 384)
     add_chunk(db_session, document, 1, "needs work")
@@ -165,7 +155,7 @@ def test_index_document_returns_result_with_both_counts(db_session, service) -> 
 
 
 def test_index_document_only_embeds_the_given_document(db_session, service) -> None:
-    """不能顺手把别的文档也编码了——多做的功和少做的一样是 bug。"""
+    """Encoding other documents along the way is as much a bug as encoding too few."""
     first = make_document(db_session, content_hash="a" * 64)
     second = make_document(db_session, content_hash="b" * 64)
     chunk_of_first = add_chunk(db_session, first, 0, "first document")
@@ -178,21 +168,19 @@ def test_index_document_only_embeds_the_given_document(db_session, service) -> N
 
 
 def test_index_document_raises_for_unknown_document(service) -> None:
-    """id 对不上时抛错，而不是"找不到 → 返回 0 → 看起来成功了"。
-
-    静默返回 0 的后果：调用方以为索引跑完了，实际一个向量都没生成，
-    而且不会有任何报错——直到发现检索结果莫名其妙地少。
-    和 ChunkRepository.update_embedding 是同一条原则。
+    """An unknown id raises rather than returning 0, which would look like a run that
+    finished successfully with nothing to do. Same principle as
+    ChunkRepository.update_embedding.
     """
     with pytest.raises(ValueError):
         service.index_document(uuid.uuid4())
 
 
-# --- 编码的内容对不对 --------------------------------------------------------
+# --- what gets encoded --------------------------------------------------------
 
 
 def test_index_document_embeds_the_chunk_text(db_session, service, embedder) -> None:
-    """必须编码 chunk 自己的文本，不能张冠李戴（比如错用了文档标题）。"""
+    """The chunk's own text must be encoded, not something else such as the title."""
     document = make_document(db_session, title="A Very Different Title")
     chunk = add_chunk(db_session, document, 0, "self attention mechanism")
 
@@ -204,30 +192,31 @@ def test_index_document_embeds_the_chunk_text(db_session, service, embedder) -> 
 
 
 def test_index_document_makes_chunks_searchable(db_session, service, repo, embedder) -> None:
-    """回填的**唯一意义**：让片段能被检索到。
+    """The only point of the backfill is that the chunk becomes retrievable.
 
-    单独测"向量写进去了"是不够的——写进去了但检索还查不到（比如漏了归一化、
-    或者列的维度不对），系统一样是坏的。所以这里把写路径和读路径串起来验证。
+    Testing that a vector was written is not enough: it can be written and still not found
+    (a missing normalization, a wrong column dimension), so the write and read paths are
+    exercised together here.
     """
     document = make_document(db_session)
     chunk = add_chunk(db_session, document, 0, "self attention mechanism")
     query = embedder.embed_text("self attention mechanism")
 
-    assert repo.search_similar(query, top_k=5) == []  # 回填之前：查不到
+    assert repo.search_similar(query, top_k=5) == []  # before the backfill
 
     service.index_document(document.id)
 
-    results = repo.search_similar(query, top_k=5)  # 回填之后：查得到
+    results = repo.search_similar(query, top_k=5)  # after the backfill
     assert len(results) == 1
     assert results[0].chunk_id == chunk.id
     assert results[0].score == pytest.approx(1.0, abs=1e-6)
 
 
-# --- 幂等 --------------------------------------------------------------------
+# --- idempotence --------------------------------------------------------------
 
 
 def test_index_document_is_idempotent(db_session, service) -> None:
-    """重复调用不会重新编码已经有过向量的片段。"""
+    """A second call does not re-encode chunks that already have a vector."""
     document = make_document(db_session)
     add_chunk(db_session, document, 0, "text")
     add_chunk(db_session, document, 1, "more text")
@@ -236,17 +225,16 @@ def test_index_document_is_idempotent(db_session, service) -> None:
     second = service.index_document(document.id)
 
     assert first == IndexingResult(embedded_count=2, skipped_count=0)
-    # 第二次一个都不该重新编码——不是"重算一遍结果一样"，而是**根本没调模型**
+    # The second call must skip everything, not recompute the same values
     assert second == IndexingResult(embedded_count=0, skipped_count=2)
 
 
 def test_index_document_does_not_overwrite_existing_vector(db_session, service, embedder) -> None:
-    """已经有向量的片段必须原样保留。
+    """Chunks that already have a vector keep it.
 
-    "跳过"和"重算"的区别在这里才看得出来：如果实现是"把整篇文档重新编码一遍"，
-    这条旧向量会被换成新值，测试就会红。为什么这是错的？
-    因为已经有向量的片段可能来自**另一个模型**——覆盖它未必是对的，
-    而且白白多花一次编码。
+    This is where "skip" and "recompute" differ: an implementation that re-encodes the
+    whole document would replace the old vector. That is both a wasted encode and
+    questionable, since the stored vector may come from another model.
     """
     document = make_document(db_session)
     old_vector = embedder.embed_text("banana bread recipe")
@@ -258,11 +246,12 @@ def test_index_document_does_not_overwrite_existing_vector(db_session, service, 
 
 
 def test_index_document_with_nothing_pending_does_not_touch_the_client(db_session, service) -> None:
-    """没有待办时不应该调用模型——空列表进 encode 是浪费，某些版本还会抛异常。"""
+    """With nothing pending the model must not be called; an empty encode is wasted work
+    and some model versions raise on it."""
 
     class ExplodingClient(FakeEmbeddingClient):
         def embed_texts(self, texts):  # type: ignore[override]
-            raise AssertionError("没有待办时不该调用 embedding client")
+            raise AssertionError("embedding client must not be called when there is nothing pending")
 
     document = make_document(db_session)
     add_chunk(db_session, document, 0, "done", embedding=[0.1] * 384)
@@ -272,7 +261,7 @@ def test_index_document_with_nothing_pending_does_not_touch_the_client(db_sessio
     assert result == IndexingResult(embedded_count=0, skipped_count=1)
 
 
-# --- 全库回填 ----------------------------------------------------------------
+# --- whole-database backfill --------------------------------------------------
 
 
 def test_index_all_pending_covers_every_document(db_session, service) -> None:
@@ -302,20 +291,20 @@ def test_index_all_pending_on_empty_database_is_a_noop(db_session, service) -> N
     assert service.index_all_pending() == IndexingResult(embedded_count=0, skipped_count=0)
 
 
-# --- 客户端返回数量不对时不能静默 --------------------------------------------------
+# --- a client returning the wrong number of vectors ---------------------------
 
 
 def test_index_document_rejects_wrong_number_of_vectors(db_session) -> None:
-    """客户端少返回向量时必须炸掉，不能默默少写几个。
+    """A client returning too few vectors must raise rather than write only some.
 
-    这条挡的是一个**真实会静默发生**的 bug：实现里用 zip() 配对，
-    而 zip 在两边长度不等时会悄悄在短的那边停下——少返回的那部分片段
-    永远拿不到向量，而且不会有任何报错。所以实现里显式比了长度。
+    This guards a real silent failure: `zip()` stops at the shorter side, so the missing
+    chunks would never get a vector and nothing would report it. The implementation
+    therefore compares the lengths explicitly.
     """
 
     class ShortClient(FakeEmbeddingClient):
         def embed_texts(self, texts):  # type: ignore[override]
-            return super().embed_texts(texts)[:-1]  # 故意少给一个
+            return super().embed_texts(texts)[:-1]  # deliberately one short
 
     document = make_document(db_session)
     add_chunk(db_session, document, 0, "one")

@@ -1,25 +1,17 @@
-"""向量检索的测试（Task 8 的 repository 层 + Task 9 的 service 层）。
+"""Vector retrieval tests, covering the repository layer and the service layer.
 
-检索在代码里分成两层，失败方式完全不同：
+Retrieval splits into two layers that fail differently:
 
-    RetrievalService.retrieve(question)         ← service：问题 → 向量 → 片段
-        └── ChunkRepository.search_similar()    ← repository：向量 → 片段
+- repository: is the SQL right? sorting direction, NULL filtering, JOIN fan-out. A mistake
+  returns the wrong chunks, which is usually obvious.
+- service: is the orchestration right? validation before encoding, and how many times each
+  step runs. A mistake here produces results that look completely normal, so only pinned
+  call counts catch it.
 
-- **repository 层**测的是 *SQL 写对没有*：排序方向、NULL 过滤、JOIN 不扇出。
-  写错的表现是**返回错误的片段**，通常能一眼看出来。
-- **service 层**测的是 *编排对不对*：校验在不在编码之前、每件事各做几次。
-  写错的表现往往是**结果看起来完全正常**，只是多编码了一次问题、
-  或者对空问题白白调了一次模型。这类问题不会有任何症状，
-  只会在账单和耗时才看得出来——所以只能靠测试钉住。
-
-关于测试数据的一个关键决定：**用 384 维的真实维度，不用 3 维假向量**。
-计划书原本建议"用假 3 维向量"，但 `chunks.embedding` 列的类型写死了 `vector(384)`，
-3 维向量根本插不进去。更重要的是——**测试用的维度必须和真实维度一致**，
-否则测出来的是"另一个东西能不能跑"，而不是"这个系统行不行"。
-
-向量的来源是 `tests/fakes.py` 的假客户端：它把词哈希到 384 维里的某一维，
-所以**共享词汇的文本向量更相似**。这让"排序是否正确"可以被真正验证，
-而不是拿一堆互不相关的随机数假装在测检索。
+Test data uses the real 384 dimensions: `chunks.embedding` is declared vector(384), so
+3-dimension fake vectors cannot be inserted, and the dimension under test should be the
+real one anyway. Vectors come from tests/fakes.py, where shared words mean more similar
+vectors, which is what makes the ranking assertions meaningful.
 """
 
 import uuid
@@ -71,7 +63,7 @@ def add_chunk(
     return chunk
 
 
-# --- 空库与边界情况 ----------------------------------------------------------
+# --- empty database and edge cases --------------------------------------------
 
 
 def test_search_on_empty_database_returns_empty_list(repo, embedder) -> None:
@@ -79,17 +71,16 @@ def test_search_on_empty_database_returns_empty_list(repo, embedder) -> None:
 
 
 def test_search_rejects_top_k_below_one(repo, embedder) -> None:
-    """top_k 是 0 或负数时，数据库对 LIMIT -1 会直接报错。
-    在这里拦下来，报错信息才有意义。"""
+    """The database rejects LIMIT -1 outright; catching it here yields a usable error."""
     with pytest.raises(ValueError):
         repo.search_similar(embedder.embed_text("anything"), top_k=0)
 
 
 def test_search_skips_chunks_without_embedding(db_session, repo, embedder) -> None:
-    """还没有生成向量的片段不能出现在结果里。
+    """Chunks with no vector must not appear in the results.
 
-    这不是假设的情况：Task 5 导入文档时只存文本，向量是稍后回填的，
-    中间这段窗口里库里合法地存在大量 embedding 为 NULL 的片段。
+    This is not hypothetical: import stores text only and vectors are backfilled later, so
+    chunks with a NULL embedding legitimately exist in the meantime.
     """
     document = make_document(db_session)
     add_chunk(db_session, document, 0, "self attention", embedding=None)
@@ -103,7 +94,7 @@ def test_search_skips_chunks_without_embedding(db_session, repo, embedder) -> No
     assert results[0].chunk_index == 1
 
 
-# --- 排序：这是检索的核心 ----------------------------------------------------
+# --- ordering: the core of retrieval ------------------------------------------
 
 
 def test_search_returns_most_similar_chunk_first(db_session, repo, embedder) -> None:
@@ -118,12 +109,11 @@ def test_search_returns_most_similar_chunk_first(db_session, repo, embedder) -> 
 
 
 def test_search_orders_by_decreasing_similarity(db_session, repo, embedder) -> None:
-    """按相似度从高到低排。
+    """Results come back by decreasing similarity.
 
-    查询用 4 个词，四个片段分别共享 4/3/2/1 个词，
-    余弦相似度是 1.0 / 0.866 / 0.707 / 0.5——**四个值互不相同**，
-    所以可以断言完整的顺序，而不是只断言"谁排第一"。
-    （如果分数有并列，并列项之间的顺序是未定义的，断言顺序就会随机失败。）
+    The chunks share 4, 3, 2 and 1 of the query's words, giving four distinct cosine
+    scores, so the whole order can be asserted rather than just the first row. Tied scores
+    would make the order among them undefined and the assertion flaky.
     """
     document = make_document(db_session)
     texts = ["alpha beta gamma delta", "alpha beta gamma", "alpha beta", "alpha"]
@@ -138,10 +128,10 @@ def test_search_orders_by_decreasing_similarity(db_session, repo, embedder) -> N
 
 
 def test_search_score_of_identical_text_is_close_to_one(db_session, repo, embedder) -> None:
-    """score 是余弦相似度：文本完全相同时应该是 1.0。
+    """score is a cosine similarity, so identical text scores 1.0.
 
-    这个断言语义而不只是数字——如果哪天有人把 `1 - 距离` 写成了 `距离`，
-    或者忘了归一化，这里会立刻失败。
+    The assertion is about meaning, not just a number: writing `distance` instead of
+    `1 - distance`, or dropping the normalization, fails here immediately.
     """
     document = make_document(db_session)
     add_chunk(db_session, document, 0, "self attention", embedder.embed_text("self attention"))
@@ -151,7 +141,7 @@ def test_search_score_of_identical_text_is_close_to_one(db_session, repo, embedd
     assert results[0].score == pytest.approx(1.0, abs=1e-6)
 
 
-# --- top_k 与结果的形状 ------------------------------------------------------
+# --- top_k and the shape of the results ---------------------------------------
 
 
 def test_search_respects_top_k(db_session, repo, embedder) -> None:
@@ -165,10 +155,10 @@ def test_search_respects_top_k(db_session, repo, embedder) -> None:
 
 
 def test_search_returns_each_chunk_at_most_once(db_session, repo, embedder) -> None:
-    """JOIN documents 不能把结果放大。
+    """The JOIN with documents must not multiply the rows.
 
-    这里要防的是经典的 JOIN 扇出：如果一个 chunk 关联出多行 documents，
-    同一条 chunk 会在结果里出现多次，top_k 就会悄悄少给几条。
+    Classic fan-out: a chunk joined to several document rows would appear several times and
+    quietly hand back fewer than top_k distinct chunks.
     """
     document = make_document(db_session)
     add_chunk(db_session, document, 0, "self attention", embedder.embed_text("self attention"))
@@ -180,10 +170,10 @@ def test_search_returns_each_chunk_at_most_once(db_session, repo, embedder) -> N
 
 
 def test_search_returns_metadata_from_both_tables(db_session, repo, embedder) -> None:
-    """结果必须同时带上 chunks 表和 documents 表的字段。
+    """Results carry fields from both tables.
 
-    带上 title 是为了回答问题时能给出处——"这段话出自哪篇文档"。
-    没有它就只剩一段孤立的文本，用户没法核实。
+    The title is what lets an answer cite its source; without it a result is an isolated
+    paragraph the user cannot verify.
     """
     document = make_document(db_session, title="Attention Is All You Need")
     chunk = add_chunk(
@@ -201,10 +191,10 @@ def test_search_returns_metadata_from_both_tables(db_session, repo, embedder) ->
 
 
 def test_search_spans_multiple_documents(db_session, repo, embedder) -> None:
-    """检索是**全局**的，不限于某一篇文档。
+    """Retrieval is global, not limited to a single document.
 
-    这是 RAG 相对"把整篇论文塞给模型"的关键差别之一：
-    问题可以从任意一篇文档里找答案。
+    This is a key difference from pasting a whole paper into the model: a question can be
+    answered from any document.
     """
     first = make_document(db_session, title="Paper A", content_hash="a" * 64)
     second = make_document(db_session, title="Paper B", content_hash="b" * 64)
@@ -216,7 +206,7 @@ def test_search_spans_multiple_documents(db_session, repo, embedder) -> None:
     assert results[0].title == "Paper B"
 
 
-# --- 回填向量 ----------------------------------------------------------------
+# --- backfilling vectors ------------------------------------------------------
 
 
 def test_update_embedding_writes_the_vector(db_session, repo, embedder) -> None:
@@ -227,7 +217,7 @@ def test_update_embedding_writes_the_vector(db_session, repo, embedder) -> None:
     repo.update_embedding(chunk.id, vector)
     db_session.flush()
 
-    # 从数据库重新读一遍（而不是看内存里的对象），确认真的写进去了
+    # Re-read from the database instead of trusting the in-memory object
     stored = db_session.get(Chunk, chunk.id)
     assert stored is not None
     assert stored.embedding is not None
@@ -235,7 +225,8 @@ def test_update_embedding_writes_the_vector(db_session, repo, embedder) -> None:
 
 
 def test_update_embedding_makes_chunk_searchable(db_session, repo, embedder) -> None:
-    """回填的最终目的是让片段**能被检索到**——这才是这个方法的完整意义。"""
+    """The point of the backfill is that the chunk becomes retrievable, which is what
+    gives this method its meaning."""
     document = make_document(db_session)
     chunk = add_chunk(db_session, document, 0, "self attention", embedding=None)
     query = embedder.embed_text("self attention")
@@ -250,7 +241,7 @@ def test_update_embedding_makes_chunk_searchable(db_session, repo, embedder) -> 
 
 
 def test_update_embedding_overwrites_existing_vector(db_session, repo, embedder) -> None:
-    """重复回填应该覆盖旧向量，而不是报错或留下两份。"""
+    """A repeated backfill overwrites the old vector instead of raising or duplicating."""
     document = make_document(db_session)
     chunk = add_chunk(db_session, document, 0, "text", embedder.embed_text("banana bread recipe"))
     new_vector = embedder.embed_text("self attention")
@@ -266,32 +257,32 @@ def test_update_embedding_overwrites_existing_vector(db_session, repo, embedder)
 
 
 def test_update_embedding_raises_for_unknown_chunk(repo, embedder) -> None:
-    """id 对不上时抛错而不是静默跳过。
+    """An unknown id raises instead of being skipped.
 
-    静默跳过会让"有些片段永远没有向量"这种 bug 一直藏着，
-    直到某天发现检索结果莫名其妙地差，而且完全不知道从哪查起。
+    Skipping quietly hides chunks that never get a vector, until someone notices retrieval
+    is worse than expected with no idea where to look.
     """
     with pytest.raises(ValueError):
         repo.update_embedding(uuid.uuid4(), embedder.embed_text("self attention"))
 
 
-# --- 检索服务（Task 9）-------------------------------------------------------
+# --- the retrieval service ----------------------------------------------------
 #
-# 这一组测的不是"能不能查出正确的片段"（上面已经测过了），而是**编排**：
-# 校验在不在编码之前、每件事各做几次、参数有没有原样传下去。
+# These do not re-test which chunks come back; they test the orchestration: whether
+# validation runs before encoding, how many times each step runs, and whether arguments are
+# forwarded unchanged.
 #
-# 为什么值得单独测：这类错误**没有症状**。多编码一次问题，结果一模一样，
-# 只是慢了一倍、贵了一倍；漏了校验，空问题也照样能返回一堆片段。
-# 靠肉眼和手工验收都发现不了，只能靠把次数钉死。
+# Such mistakes have no symptom. Encoding the question twice returns identical results,
+# only slower and more expensive; a missing validation lets an empty question return a pile
+# of chunks. Neither shows up in manual checking, so the counts are pinned instead.
 
 
 class _CountingEmbeddingClient:
-    """包住假客户端，记录每次编码用的文本。
+    """Wraps the fake client and records the text passed to each encode.
 
-    为什么不用 mock 库：这里只需要"记下来"这一个动作，
-    一个三行的类比 `Mock()` 加一串断言更直白，而且它**保留真实行为**——
-    返回值仍然是那个能被检索命中的哈希向量，所以同一个替身既能计数
-    又能当正常客户端用。
+    A small hand-written class rather than Mock(): it needs one behaviour, and it keeps the
+    real behaviour, so the returned vectors still match what is in the database and the
+    same double serves as both a counter and a working client.
     """
 
     def __init__(self) -> None:
@@ -308,14 +299,12 @@ class _CountingEmbeddingClient:
 
 
 class _SearchSpy:
-    """包住 `search_similar`，记录每次调用的参数。
+    """Wraps `search_similar` and records each call's arguments.
 
-    为什么用"包一层"而不是 monkeypatch 整个类：
-    `RetrievalService.__init__` 里自己 new 了一个 `ChunkRepository`
-    （和 `IndexingService` 的写法一致），外面拿不到那个实例。
-    但 **Python 查找实例属性优先于类属性**，所以给 `service.chunks` 这个实例
-    挂一个同名属性就能拦住调用，同时 `_original` 仍然是真正的方法——
-    查库逻辑照常执行，只是多记了一笔。
+    Wrapping rather than monkeypatching the class: `RetrievalService.__init__` creates its
+    own `ChunkRepository`, so the instance is only reachable as `service.chunks`. Python
+    looks up instance attributes before class attributes, so an attribute of the same name
+    set there intercepts the call while `_original` still runs the real query.
     """
 
     def __init__(self, repository: ChunkRepository) -> None:
@@ -345,7 +334,7 @@ def search_spy(service: RetrievalService) -> _SearchSpy:
 
 
 def seed_chunks(db_session: Session, embedder: FakeEmbeddingClient) -> None:
-    """一篇文档、三个主题不同的片段。"""
+    """One document with three chunks on different topics."""
     document = make_document(db_session)
     for index, text in enumerate(
         ["banana bread recipe", "self attention mechanism", "gradient descent optimizer"]
@@ -353,7 +342,7 @@ def seed_chunks(db_session: Session, embedder: FakeEmbeddingClient) -> None:
         add_chunk(db_session, document, index, text, embedder.embed_text(text))
 
 
-# --- 校验 --------------------------------------------------------------------
+# --- validation ---------------------------------------------------------------
 
 
 def test_retrieve_rejects_an_empty_question(service) -> None:
@@ -362,10 +351,10 @@ def test_retrieve_rejects_an_empty_question(service) -> None:
 
 
 def test_retrieve_rejects_a_whitespace_only_question(service) -> None:
-    """只输入空格 / 换行的"空问题"同样没有语义。
+    """A whitespace-only question carries no meaning either.
 
-    直接判 `not question` 会漏掉它们——字符串本身非空，但编码出来的向量
-    要么是全零（和任何向量都没有意义明确的相似度），要么只反映标点。
+    `not question` misses it, since the string is non-empty, while the resulting vector is
+    either all zeros or nothing but punctuation.
     """
     with pytest.raises(ValueError, match="must not be empty"):
         service.retrieve("   \n\t  ")
@@ -379,26 +368,25 @@ def test_retrieve_rejects_top_k_out_of_range(service, top_k: int) -> None:
 
 @pytest.mark.parametrize("top_k", [1, DEFAULT_TOP_K, MAX_TOP_K])
 def test_retrieve_accepts_top_k_within_range(db_session, embedder, counter, top_k: int) -> None:
-    """边界值本身必须是合法的。
+    """The boundary values themselves must be valid.
 
-    只测"超界的要报错"是不够的——把上限写成 0 也能让那条测试通过，
-    但服务就再也检索不了任何东西了。这是 H 变异（Task 8c）留下的教训：
-    **越界的检查必须配一条界内的检查**，否则阈值本身写错也没人发现。
+    Testing only the out-of-range cases would also pass with the upper bound set to 0, after
+    which the service could not retrieve anything at all. Every bound check needs an
+    in-range check beside it, or a wrong threshold goes unnoticed.
     """
     seed_chunks(db_session, embedder)
 
     assert len(RetrievalService(db_session, counter).retrieve("self attention", top_k=top_k)) <= top_k
 
 
-# --- 编排：调用次数与顺序 ----------------------------------------------------
+# --- orchestration: call counts and order -------------------------------------
 
 
 def test_retrieve_embeds_the_question_exactly_once(db_session, embedder, counter) -> None:
-    """问题只编码一次。
+    """The question is encoded once.
 
-    多编码一次在结果上**完全看不出来**，只是每次提问都白等一次模型前向、
-    多付一次钱。这类"结果正确但成本翻倍"的问题没有任何症状，
-    只有把次数钉死才拦得住。
+    A second encode is invisible in the output, it only adds a model forward pass and its
+    cost to every question. Nothing but a pinned count catches that.
     """
     seed_chunks(db_session, embedder)
 
@@ -408,19 +396,12 @@ def test_retrieve_embeds_the_question_exactly_once(db_session, embedder, counter
 
 
 def test_retrieve_searches_the_database_exactly_once(db_session, embedder, service, search_spy) -> None:
-    """查库也只查一次——不能"先查一次看看，再查一次取结果"。
+    """The database is queried once as well, not once to look and once to fetch.
 
-    注意这里用的是 `service` / `search_spy` 两个 fixture：**被测对象**和
-    **挂 spy 的对象**必须是同一个实例。
-
-    第一版不是这样写的——测试体里又 `RetrievalService(db_session, counter)`
-    new 了一个，同时声明了 `search_spy` fixture 却没用它。那一版**恰好还是对的**
-    （因为我在新实例上另挂了一个 spy），但被测对象和 spy 从此分成两条线：
-    下一个人把多余的 new 删掉、改用 fixture 的 spy 时，
-    断言就会挂在一个没人调用的对象上——而写死 `== 1` 时那是**失败**而不是假绿，
-    所以它会红一次，然后被人"修"成 `== 0` 或者干脆删掉。
-
-    让两者始终是同一个实例，是这类计数测试唯一稳妥的写法。
+    The `service` and `search_spy` fixtures must yield the same instance: a second
+    RetrievalService built in the test body would leave this assertion watching an object
+    nobody calls. That version passes by accident, and is then "fixed" by weakening the
+    count the next time someone touches the test.
     """
     seed_chunks(db_session, embedder)
 
@@ -430,10 +411,10 @@ def test_retrieve_searches_the_database_exactly_once(db_session, embedder, servi
 
 
 def test_retrieve_passes_the_question_to_the_embedder_unchanged(db_session, embedder, counter) -> None:
-    """送去编码的是调用方给的原字符串，没有被 strip / 截断 / 改写。
+    """The raw string reaches the embedder, not a stripped or truncated copy.
 
-    保留原样是为了**可复现**：出问题时能拿同一个字符串重跑，
-    不用猜中间那一层动过什么。
+    Keeping it unchanged makes failures reproducible: the same string can be replayed
+    without guessing what an intermediate layer did to it.
     """
     seed_chunks(db_session, embedder)
 
@@ -443,7 +424,7 @@ def test_retrieve_passes_the_question_to_the_embedder_unchanged(db_session, embe
 
 
 def test_retrieve_forwards_top_k_to_the_repository(db_session, embedder, counter) -> None:
-    """top_k 必须原样传下去，不能被吞掉、也不能被写死成默认值。"""
+    """top_k is forwarded as given, neither dropped nor replaced by the default."""
     seed_chunks(db_session, embedder)
     service = RetrievalService(db_session, counter)
     spy = _SearchSpy(service.chunks)
@@ -455,7 +436,7 @@ def test_retrieve_forwards_top_k_to_the_repository(db_session, embedder, counter
 
 
 def test_retrieve_uses_the_default_top_k_when_omitted(db_session, embedder, counter) -> None:
-    """不传 top_k 时用的是 DEFAULT_TOP_K，而不是"全部返回"。"""
+    """Without top_k the service uses DEFAULT_TOP_K rather than returning everything."""
     seed_chunks(db_session, embedder)
     document = make_document(db_session, content_hash="b" * 64)
     for index in range(DEFAULT_TOP_K + 3):
@@ -468,11 +449,11 @@ def test_retrieve_uses_the_default_top_k_when_omitted(db_session, embedder, coun
 
 
 def test_retrieve_validates_the_question_before_encoding(service, counter) -> None:
-    """空问题的校验必须发生在编码**之前**。
+    """The empty-question check must run before encoding.
 
-    顺序反了的话，一个没有语义的问题照样会占用一次模型前向——
-    而且某些模型对空字符串返回全零向量，检索会返回一堆看似随机的片段，
-    把"输入不合法"伪装成"检索质量差"。
+    In the other order a meaningless question still costs a model forward pass, and some
+    models return an all-zero vector for it, so retrieval returns arbitrarily ranked chunks
+    and dresses up invalid input as poor retrieval quality.
     """
     with pytest.raises(ValueError):
         service.retrieve("")
@@ -481,7 +462,7 @@ def test_retrieve_validates_the_question_before_encoding(service, counter) -> No
 
 
 def test_retrieve_validates_top_k_before_encoding(db_session, embedder, counter) -> None:
-    """top_k 越界同样要在编码之前拦下——理由同上。"""
+    """An out-of-range top_k is caught before encoding for the same reason."""
     seed_chunks(db_session, embedder)
 
     with pytest.raises(ValueError):
@@ -491,15 +472,15 @@ def test_retrieve_validates_top_k_before_encoding(db_session, embedder, counter)
 
 
 def test_retrieve_does_not_commit(db_session, embedder, counter, monkeypatch) -> None:
-    """检索是**只读**操作，不该提交事务。
+    """Retrieval is read-only and must not commit.
 
-    这条不是吹毛求疵：Task 11 的 Ask API 会在一个请求里同时用这个 session
-    做检索（将来还要写 QA 日志）。检索路径里混进一次 commit，
-    事务边界就不再是调用方说了算了。
+    Not pedantry: a request may share this session between retrieval and other work, so a
+    commit inside the retrieval path would take the transaction boundary away from the
+    caller.
     """
 
     def fail() -> None:
-        raise AssertionError("retrieve() 不该提交事务")
+        raise AssertionError("retrieve() must not commit")
 
     seed_chunks(db_session, embedder)
     monkeypatch.setattr(db_session, "commit", fail)
@@ -507,11 +488,12 @@ def test_retrieve_does_not_commit(db_session, embedder, counter, monkeypatch) ->
     assert RetrievalService(db_session, counter).retrieve("self attention")
 
 
-# --- 端到端：结果本身 --------------------------------------------------------
+# --- end to end: the results themselves ---------------------------------------
 
 
 def test_retrieve_returns_chunks_ordered_by_similarity(db_session, embedder, counter) -> None:
-    """把两层接起来跑一遍：问题经过编码、查库，回到最相关的片段。"""
+    """Both layers together: the question is encoded, the database is queried, and the
+    most relevant chunks come back."""
     seed_chunks(db_session, embedder)
 
     results = RetrievalService(db_session, counter).retrieve("self attention layer", top_k=3)
@@ -522,10 +504,10 @@ def test_retrieve_returns_chunks_ordered_by_similarity(db_session, embedder, cou
 
 
 def test_retrieve_spans_multiple_documents(db_session, embedder, counter) -> None:
-    """检索是全局的：答案可以在任何一篇文档里。
+    """Retrieval is global: the answer can live in any document.
 
-    这是这一层存在的意义——问题不绑定到某一篇文档，
-    用户也不需要知道答案在哪篇里。
+    That is the point of this layer. A question is not bound to one document, and the user
+    does not need to know which one holds the answer.
     """
     first = make_document(db_session, title="Paper A", content_hash="a" * 64)
     second = make_document(db_session, title="Paper B", content_hash="b" * 64)
@@ -538,18 +520,19 @@ def test_retrieve_spans_multiple_documents(db_session, embedder, counter) -> Non
 
 
 def test_retrieve_returns_empty_list_on_an_empty_database(service) -> None:
-    """库里什么都没有时返回空列表，而不是抛异常。
+    """An empty database returns an empty list rather than raising.
 
-    "没找到"和"出错了"是两回事：前者是一个正常的业务结果
-    （语料还没导入、问题问的是语料之外的东西），
-    后者才是需要调用方处理的情况。混成一种，上层就没法区分
-    "该告诉用户没找到"还是"该报警"。
+    "Not found" and "failed" are different things: the first is a normal business result
+    (no corpus imported yet, or a question outside the corpus), the second is what the
+    caller has to handle. Merging them leaves the caller unable to tell "tell the user
+    nothing was found" from "raise an alarm".
     """
     assert service.retrieve("self attention") == []
 
 
 def test_retrieve_ignores_chunks_without_vectors(db_session, embedder, counter) -> None:
-    """还没回填向量的片段不能被检索到——这层不能绕过 repository 的过滤。"""
+    """Chunks with no vector are not retrievable; this layer cannot bypass the repository's
+    filter."""
     document = make_document(db_session)
     add_chunk(db_session, document, 0, "self attention", embedding=None)
 

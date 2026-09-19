@@ -1,10 +1,7 @@
-"""测试替身（test doubles）。
+"""Test doubles: no model downloads, no LLM calls, no network, no unpredictable slowness.
 
-让测试不依赖外部世界：不下载模型、不调 LLM、不联网、不确定性地慢。
-
-单独放一个模块，而不是散在各个测试文件里，是因为**替身一旦被复制成好几份，
-它们就会各自漂移**，最后谁都不能代表真实组件的行为。Task 8 的检索测试、
-Task 9 的问答测试都要用同一个替身。
+Kept in one module so the doubles cannot be copied around and drift apart into versions
+that no longer represent the real components.
 """
 
 import math
@@ -14,15 +11,15 @@ from app.core.config import EMBEDDING_DIM
 
 
 class FakeEmbeddingClient:
-    """确定性的假 embedding，形状与归一化都模仿真实客户端。
+    """Deterministic fake embeddings, matching the real client's shape and normalization.
 
-    实现是"词袋 + 哈希"：把每个词哈希到 384 维中的某一维上累加。这样
-    **共享词汇的文本会得到更相似的向量**，检索测试因此能验证排序逻辑，
-    而不是拿到一堆互不相关的随机数。
+    A bag-of-words hash: each word is hashed onto one of 384 dimensions and accumulated,
+    so texts sharing vocabulary end up more similar and retrieval tests can verify the
+    ranking logic instead of comparing unrelated random numbers.
 
-    它模仿不了的：**真正的语义**。它不知道 cat 和 kitten 相关，
-    只知道它们没有共同的词。所以它只能验证"检索流程对不对"，
-    不能验证"检索质量好不好"——后者要用真实模型跑离线评估（Task 14）。
+    What it cannot imitate is meaning: it does not know cat and kitten are related, only
+    that they share no words. It can therefore validate the retrieval pipeline, not
+    retrieval quality.
     """
 
     def __init__(self, dim: int = EMBEDDING_DIM) -> None:
@@ -38,14 +35,14 @@ class FakeEmbeddingClient:
         vector = [0.0] * self.dim
 
         for word in text.lower().split():
-            # 必须用 crc32，不能用内置的 hash()：内置 hash 对字符串带进程级随机盐
-            # （PYTHONHASHSEED），同一个词在不同进程里会落到不同维度上，
-            # 测试就失去确定性、也没法复现了。
+            # crc32, not the builtin hash(): the builtin is salted per process
+            # (PYTHONHASHSEED), so the same word would land on a different dimension
+            # in each run and the tests would stop being deterministic.
             bucket = zlib.crc32(word.encode("utf-8")) % self.dim
             vector[bucket] += 1.0
 
         norm = math.sqrt(sum(value * value for value in vector))
         if norm == 0.0:
-            return vector  # 空文本 / 全是未知字符 → 全零向量
+            return vector  # empty text / unknown characters -> all-zero vector
 
         return [value / norm for value in vector]
