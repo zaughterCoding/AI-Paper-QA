@@ -29,3 +29,6 @@ pgdata/
 # 编辑器
 .idea/
 .vscode/
+
+# 学习文档
+docs/
