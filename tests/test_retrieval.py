@@ -410,9 +410,17 @@ def test_retrieve_embeds_the_question_exactly_once(db_session, embedder, counter
 def test_retrieve_searches_the_database_exactly_once(db_session, embedder, service, search_spy) -> None:
     """查库也只查一次——不能"先查一次看看，再查一次取结果"。
 
-    注意这里用的是 `service` / `search_spy` 两个 fixture（后者在前者身上挂 spy），
-    不能自己另 new 一个 service——那样 spy 挂在一个没人用的实例上，
-    断言永远是 0，测试会"通过"但什么都没验证。
+    注意这里用的是 `service` / `search_spy` 两个 fixture：**被测对象**和
+    **挂 spy 的对象**必须是同一个实例。
+
+    第一版不是这样写的——测试体里又 `RetrievalService(db_session, counter)`
+    new 了一个，同时声明了 `search_spy` fixture 却没用它。那一版**恰好还是对的**
+    （因为我在新实例上另挂了一个 spy），但被测对象和 spy 从此分成两条线：
+    下一个人把多余的 new 删掉、改用 fixture 的 spy 时，
+    断言就会挂在一个没人调用的对象上——而写死 `== 1` 时那是**失败**而不是假绿，
+    所以它会红一次，然后被人"修"成 `== 0` 或者干脆删掉。
+
+    让两者始终是同一个实例，是这类计数测试唯一稳妥的写法。
     """
     seed_chunks(db_session, embedder)
 
