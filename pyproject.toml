@@ -12,7 +12,14 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "pgvector>=0.3",
     "alembic>=1.13",
+    "sentence-transformers>=6.0",
 ]
+
+# NOTE on torch: sentence-transformers pulls in torch as a dependency, and a plain
+# `pip install` on Windows resolves the CUDA build (~2.5 GB). This project uses a
+# CPU-only build on purpose -- see README for the install command. Install torch
+# from the official CPU index BEFORE running `pip install -e .`:
+#   pip install --index-url https://download.pytorch.org/whl/cpu torch
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
