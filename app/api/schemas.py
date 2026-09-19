@@ -38,6 +38,17 @@ class DocumentCreateResponse(BaseModel):
     # 同一篇内容重复导入时 created=False。让调用方能区分
     # "这次真的入库了" 和 "这篇之前就导过了"。
     created: bool
+    # 这次请求里**新写入向量**的片段数。
+    #
+    # 为什么要暴露这个数字：导入和索引是两步，如果只回报 chunk_count，
+    # 调用方就看不出索引到底有没有发生——一个"文档存进去了但全是 NULL 向量"
+    # 的结果，和完全成功长得一模一样。这正是 F-39 那个缺口能藏那么久的原因。
+    #
+    # 三种取值分别意味着：
+    #   = chunk_count → 全新文档，全部片段都编码了
+    #   = 0 且 created=False → 重复导入，且这篇早就索引过了
+    #   > 0 且 created=False → 重复导入，但补上了之前缺的向量（自愈）
+    embedded_chunk_count: int
 
 
 class DocumentListItem(BaseModel):

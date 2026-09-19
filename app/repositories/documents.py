@@ -1,5 +1,7 @@
 """documents 表的读写。"""
 
+import uuid
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -32,6 +34,16 @@ class DocumentRepository:
         return list(
             self.session.scalars(select(Document).order_by(Document.created_at.desc()))
         )
+
+    def get_by_id(self, document_id: uuid.UUID) -> Document | None:
+        """按主键查文档。
+
+        用的是 `session.get()` 而不是 `select().where(id == ...)`：
+        `get()` 会先查 session 的 identity map（本次会话里已经加载过的对象），
+        命中就不发 SQL。对"按主键取一个对象"这种最常见的需求，
+        `get()` 是 SQLAlchemy 推荐的标准写法。
+        """
+        return self.session.get(Document, document_id)
 
     def get_by_content_hash(self, content_hash: str) -> Document | None:
         """按内容指纹查文档，用于避免重复导入。

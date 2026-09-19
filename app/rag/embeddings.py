@@ -6,6 +6,8 @@
 
 from sentence_transformers import SentenceTransformer
 
+from app.core.config import get_settings
+
 
 class EmbeddingClient:
     """对 sentence-transformers 的一层薄封装。
@@ -20,7 +22,7 @@ class EmbeddingClient:
 
     注意模型是在 `__init__` 里加载的——这一步要几秒、占几百 MB 内存。
     所以**调用方必须复用同一个实例**，不能每次请求都 new 一个。
-    （复用机制在 Task 8 接入服务时建立。）
+    复用机制就是下面的 `get_embedding_client()`。
     """
 
     def __init__(self, model_name: str) -> None:
@@ -46,3 +48,31 @@ class EmbeddingClient:
         # 一是让返回值脱离 numpy（上层不需要为了拿个向量而依赖 numpy），
         # 二是 numpy 的 float32 直接塞进 JSON 会报错，转成 Python float 才能序列化。
         return [vector.tolist() for vector in vectors]
+
+
+# 进程级唯一实例。前面的下划线表示"这是模块内部状态，别直接碰它"。
+_default_client: EmbeddingClient | None = None
+
+
+def get_embedding_client() -> EmbeddingClient:
+    """拿到全局唯一的 EmbeddingClient（没有就创建一个）。
+
+    为什么必须是单例：`EmbeddingClient.__init__` 要加载模型——几秒 + 几百 MB。
+    如果每个请求都 new 一个，第一次并发就会把内存吃光，而且每次请求都要先等几秒。
+
+    为什么用模块级变量而不是 `functools.lru_cache`：
+    效果一样，但模块级变量的意图更直白（"这里有一个全局的重对象"），
+    而且测试里可以直接重置它。
+
+    为什么不做成 FastAPI 的依赖函数、放在 api/ 目录下：
+    它其实是个**普通的零参数函数**——FastAPI 的 `Depends` 接受任何这样的可调用对象，
+    不需要 import fastapi。放在这里，`rag/` 层保持"纯逻辑、不认识 Web 框架"，
+    而重对象的生命周期归它自己的模块管。
+
+    这是**惰性**的：import 时不加载模型，第一次真正需要时才加载。
+    所以 pytest 收集用例、或只跑不涉及 embedding 的测试时，没有任何模型开销。
+    """
+    global _default_client
+    if _default_client is None:
+        _default_client = EmbeddingClient(get_settings().embedding_model)
+    return _default_client

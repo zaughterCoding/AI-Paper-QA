@@ -83,6 +83,32 @@ class ChunkRepository:
         )
         return count or 0
 
+    def count_all(self) -> int:
+        """统计全库片段总数。用来算"有多少片段已经有向量了"。
+
+        和 count_by_document 一样，用 SQL 的 COUNT(*) 而不是把行拉回来自己数。
+        """
+        count = self.session.scalar(select(func.count()).select_from(Chunk))
+        return count or 0
+
+    def list_without_embedding(self, document_id: uuid.UUID | None = None) -> list[Chunk]:
+        """找出还没有向量的片段——回填流程的输入。
+
+        `document_id` 传了就只找这一篇的，不传就找全库的。
+
+        为什么按 `(document_id, chunk_index)` 排序？
+        **为了让结果确定。** 不写 ORDER BY 时，PostgreSQL 返回行的顺序是
+        未定义的（取决于物理存储、并行扫描、甚至缓存命中情况），同一个查询
+        两次跑可能给出不同顺序。对回填来说顺序不影响正确性，但对**测试**影响很大：
+        断言"第一个被写入向量的是哪条"会随机失败。
+        （同一个教训见 F-11：`ORDER BY created_at DESC` 不稳定会导致分页丢记录。）
+        """
+        statement = select(Chunk).where(Chunk.embedding.is_(None))
+        if document_id is not None:
+            statement = statement.where(Chunk.document_id == document_id)
+
+        return list(self.session.scalars(statement.order_by(Chunk.document_id, Chunk.chunk_index)))
+
     def update_embedding(self, chunk_id: uuid.UUID, embedding: list[float]) -> None:
         """把一个片段的向量写回数据库。
 

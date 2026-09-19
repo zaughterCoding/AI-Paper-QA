@@ -21,7 +21,9 @@ from app.api.schemas import (
     DocumentListItem,
 )
 from app.core.database import get_db_session
+from app.rag.embeddings import EmbeddingClient, get_embedding_client
 from app.repositories.documents import DocumentRepository
+from app.services.indexing import IndexingService
 from app.services.ingestion import DocumentIngestionService
 
 router = APIRouter()
@@ -41,8 +43,19 @@ def create_document(
     # 一个函数调用放在了默认值的位置——那在 Python 里通常是 bug 的温床
     # （默认值只在定义时求值一次）。Annotated 把这个信息挪回类型位置。
     session: Annotated[Session, Depends(get_db_session)],
+    embedding_client: Annotated[EmbeddingClient, Depends(get_embedding_client)],
 ) -> DocumentCreateResponse:
-    """导入一篇文档。同一篇内容重复提交会返回原文档而不是报错。"""
+    """导入一篇文档，并给它的片段生成向量。
+
+    **两步，两个事务**（见 app/services/indexing.py 顶部的说明）：
+
+        1. ingest  → 文档和片段入库（只有文本）
+        2. index   → 给片段补上向量
+
+    分开的后果是：如果第 2 步失败，**文档已经存下来了**。这时请求会返回 500，
+    但数据没白丢——客户端重新提交同样的内容会走到"重复导入"分支，
+    索引会再跑一次并补上缺失的向量。也就是说这个接口是**自愈**的。
+    """
     service = DocumentIngestionService(session)
 
     try:
@@ -59,10 +72,16 @@ def create_document(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
         ) from exc
 
+    # 显式调用索引，而不是让 ingest 内部悄悄做掉——"谁负责编码"在代码里看得见。
+    # 这里不 try/except：索引失败就应该 500，绝不能吞掉异常返回一个
+    # "看起来成功、实际没有向量"的 201。那正是 F-39 藏了那么久的原因。
+    indexing = IndexingService(session, embedding_client).index_document(result.document_id)
+
     return DocumentCreateResponse(
         document_id=result.document_id,
         chunk_count=result.chunk_count,
         created=result.created,
+        embedded_chunk_count=indexing.embedded_count,
     )
 
 
