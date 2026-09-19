@@ -1,6 +1,6 @@
 {
   "generated_by": "scripts/fetch_corpus.py",
-  "note": "正文来自 arXiv 官方 HTML 版。已剔除参考文献、作者区、页面导航、图注和表格；公式保留其 LaTeX 源码（轻度清洗过），没有渲染成数学排版。",
+  "note": "Body text comes from arXiv's official HTML version. References, author blocks, page navigation, figure captions and tables were removed; formulas keep their LaTeX source (lightly cleaned up) rather than being rendered as math.",
   "papers": [
     {
       "slug": "attention-is-all-you-need",
