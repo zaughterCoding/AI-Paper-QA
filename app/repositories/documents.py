@@ -23,6 +23,16 @@ class DocumentRepository:
         self.session.flush()
         return document
 
+    def list_documents(self) -> list[Document]:
+        """列出全部文档，最新的在前。
+
+        scalars() 返回的是迭代器，外面套一层 list() 让它变成真正的列表：
+        迭代器只能遍历一次，返回给上层一个"用完就空"的对象是个隐藏陷阱。
+        """
+        return list(
+            self.session.scalars(select(Document).order_by(Document.created_at.desc()))
+        )
+
     def get_by_content_hash(self, content_hash: str) -> Document | None:
         """按内容指纹查文档，用于避免重复导入。
 
