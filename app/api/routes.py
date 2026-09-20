@@ -23,6 +23,7 @@ from app.core.database import get_db_session
 from app.rag.embeddings import EmbeddingClient, get_embedding_client
 from app.rag.llm import LLMClient, LLMError, get_llm_client
 from app.repositories.documents import DocumentRepository
+from app.repositories.qa_logs import QALogRepository
 from app.services.answering import AnswerService
 from app.services.indexing import IndexingService
 from app.services.ingestion import DocumentIngestionService
@@ -104,14 +105,20 @@ def ask_question(
 ) -> AskResponse:
     """Answer a question from the corpus, with the sources the answer rests on.
 
-    Read-only. Retrieval reads, generation is a remote call, and nothing is written here;
-    recording the question is a separate concern with its own failure modes (Task 12).
+    The corpus is read and never written. The one write is an audit row holding the
+    question, the answer, the chunks the model was shown and the elapsed time; it is
+    committed by the repository and a failure to write it is absorbed by the service, so an
+    unwritable log cannot cost a caller an answer that has already been generated.
 
     An empty corpus is not an error: retrieval returns no chunks, the service answers
     "the sources do not contain enough information" without calling the model at all, and
-    this returns 200. A question the corpus cannot answer is a normal outcome.
+    this returns 200. A question the corpus cannot answer is a normal outcome -- and it is
+    recorded like any other, which is what makes the log useful for asking how often
+    retrieval comes back empty.
     """
-    service = AnswerService(RetrievalService(session, embedding_client), llm_client)
+    service = AnswerService(
+        RetrievalService(session, embedding_client), llm_client, QALogRepository(session)
+    )
 
     try:
         # payload.top_k always has a value -- the schema fills in DEFAULT_TOP_K -- so the

@@ -67,6 +67,33 @@ class FakeLLMClient:
         return self.answer
 
 
+class FakeQALogRepository:
+    """Records the audit rows that would have been written, and can be made to fail.
+
+    ``error`` stands in for a database that cannot be written to: it is raised from
+    ``create_log`` exactly where a real ``SQLAlchemyError`` would be, so the service's
+    handling of a failed audit write is testable without breaking a real database.
+    """
+
+    def __init__(self, error: Exception | None = None) -> None:
+        self.error = error
+        self.logs: list[dict] = []
+
+    def create_log(
+        self, question: str, answer: str, retrieved_chunk_ids: list[str], latency_ms: int
+    ) -> None:
+        if self.error is not None:
+            raise self.error
+        self.logs.append(
+            {
+                "question": question,
+                "answer": answer,
+                "retrieved_chunk_ids": retrieved_chunk_ids,
+                "latency_ms": latency_ms,
+            }
+        )
+
+
 class FakeRetrievalService:
     """Returns a fixed list of chunks instead of querying a database."""
 

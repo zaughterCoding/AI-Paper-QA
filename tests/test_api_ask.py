@@ -21,12 +21,14 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
+from app.api import routes
 from app.api.schemas import AskRequest
 from app.core.database import get_db_session
 from app.main import create_app
-from app.models.tables import Chunk, Document
+from app.models.tables import Chunk, Document, QALog
 from app.rag.embeddings import get_embedding_client
 from app.rag.llm import LLMClient, LLMError, get_llm_client
 from app.services.answering import NO_SOURCES_ANSWER
@@ -44,6 +46,12 @@ SECRET = "sk-secret-value-must-not-leak"
 
 def _count(session: Session, model: type) -> int:
     return session.scalar(select(func.count()).select_from(model)) or 0
+
+
+def count_logs(session: Session) -> int:
+    """Audit rows in the table. Zero is what most of these tests assert, since the fixture
+    rolls every test back and the table therefore starts empty."""
+    return _count(session, QALog)
 
 
 @contextmanager
@@ -177,8 +185,13 @@ def test_sources_are_ordered_best_first(client: TestClient) -> None:
     assert scores == sorted(scores, reverse=True)
 
 
-def test_ask_writes_nothing(client: TestClient, db_session: Session) -> None:
-    """Asking is a read path. Recording questions is Task 12's job, with its own rules."""
+def test_ask_does_not_change_the_corpus(client: TestClient, db_session: Session) -> None:
+    """Asking reads and never writes the corpus, however the request turns out.
+
+    Only the corpus is asserted here. ``/ask`` does write one audit row, and that is a
+    different claim with its own tests further down; keeping the two apart means a change
+    to logging cannot make this test pass or fail for the wrong reason.
+    """
     import_document(client)
     before = (_count(db_session, Document), _count(db_session, Chunk))
 
@@ -322,6 +335,116 @@ def test_ask_returns_502_when_the_model_endpoint_fails(
         response = client.post("/ask", json={"question": "q"})
 
     assert response.status_code == 502
+
+
+# --- the audit log: one row per answered question -----------------------------
+#
+# The repository and the decision about failed writes are tested elsewhere; what is pinned
+# here is the acceptance criterion a client can see, along with the two ways a request can
+# finish without producing a row.
+
+
+def test_ask_records_one_audit_row(client: TestClient, db_session: Session) -> None:
+    """Exactly one row per successful request, holding the question, the answer and the
+    chunk ids the model was shown."""
+    import_document(client)
+
+    response = client.post("/ask", json={"question": "how many GPUs were used?"})
+    body = response.json()
+
+    assert count_logs(db_session) == 1
+    log = db_session.scalar(select(QALog))
+    assert log.question == "how many GPUs were used?"
+    assert log.answer == body["answer"]
+    assert log.latency_ms >= 0
+    # The ids are the stored chunk rows, identified through the response's own sources --
+    # which carry document_id and chunk_index and deliberately no chunk id. Comparing in
+    # that order also pins that the log keeps retrieval's ordering, so the ids line up with
+    # the [n] markers in the answer.
+    chunk_ids_by_index = {
+        chunk.chunk_index: str(chunk.id) for chunk in db_session.scalars(select(Chunk))
+    }
+    assert log.retrieved_chunk_ids == [
+        chunk_ids_by_index[source["chunk_index"]] for source in body["sources"]
+    ]
+    assert len(log.retrieved_chunk_ids) == len(body["sources"])
+
+
+def test_ask_records_a_row_for_an_unanswerable_question(
+    client: TestClient, db_session: Session
+) -> None:
+    """An empty corpus is a 200 with no sources, and it is still an answered request.
+
+    These rows are the interesting ones: counting them is how the retrieval miss rate
+    becomes visible, so an implementation that only logged when the model was called would
+    hide exactly the cases worth looking at.
+    """
+    response = client.post("/ask", json={"question": "what is self attention?"})
+
+    assert response.status_code == 200
+    log = db_session.scalar(select(QALog))
+    assert log.retrieved_chunk_ids == []
+    assert log.answer == NO_SOURCES_ANSWER
+
+
+def test_ask_records_nothing_when_the_model_endpoint_fails(
+    db_session: Session, embedder: FakeEmbeddingClient
+) -> None:
+    """A 502 has no answer. Recording the failure would put a row in the table that means
+    "we answered nothing", which is not the same as "we could not ask"."""
+    with app_client(db_session, embedder, FailingLLMClient()) as client:
+        import_document(client)
+        response = client.post("/ask", json={"question": "q"})
+
+    assert response.status_code == 502
+    assert count_logs(db_session) == 0
+
+
+def test_ask_records_nothing_when_the_request_is_rejected(
+    client: TestClient, db_session: Session
+) -> None:
+    import_document(client)
+
+    assert client.post("/ask", json={"question": ""}).status_code == 422
+
+    assert count_logs(db_session) == 0
+
+
+class BrokenQALogRepository:
+    """A repository whose writes fail the way an unavailable database fails.
+
+    Mirrors the real signature rather than taking ``**kwargs``: a signature mismatch would
+    raise TypeError, which is deliberately *not* swallowed, and this test would then fail
+    for a reason that has nothing to do with what it is checking.
+    """
+
+    def __init__(self, session: Session) -> None:
+        pass
+
+    def create_log(
+        self, question: str, answer: str, retrieved_chunk_ids: list[str], latency_ms: int
+    ) -> None:
+        raise OperationalError("INSERT INTO qa_logs ...", {}, Exception("connection lost"))
+
+
+def test_ask_still_answers_when_the_audit_write_fails(
+    db_session: Session, embedder: FakeEmbeddingClient, llm: FakeLLMClient, monkeypatch
+) -> None:
+    """The answer survives an unwritable audit table, and the client never learns of it.
+
+    This is the client-visible half of the decision made in AnswerService. A 500 here would
+    discard a generated answer over a bookkeeping failure, and the caller has no way to tell
+    that apart from the model having failed.
+    """
+    monkeypatch.setattr(routes, "QALogRepository", BrokenQALogRepository)
+
+    with app_client(db_session, embedder, llm) as client:
+        import_document(client)
+        response = client.post("/ask", json={"question": "q"})
+
+    assert response.status_code == 200
+    assert response.json()["answer"] == "A canned answer [1]."
+    assert count_logs(db_session) == 0
 
 
 def test_ask_does_not_leak_the_api_key_when_the_provider_rejects_it(
