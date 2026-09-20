@@ -8,6 +8,8 @@ import math
 import zlib
 
 from app.core.config import EMBEDDING_DIM
+from app.repositories.chunks import RetrievedChunk
+from app.services.retrieval import DEFAULT_TOP_K
 
 
 class FakeEmbeddingClient:
@@ -46,3 +48,32 @@ class FakeEmbeddingClient:
             return vector  # empty text / unknown characters -> all-zero vector
 
         return [value / norm for value in vector]
+
+
+class FakeLLMClient:
+    """Returns a canned answer and records every prompt it was given.
+
+    Recording the prompts is what lets a test assert on the prompt without a separate spy,
+    and asserting on the prompt is the only way to test this layer: the model's output is
+    a string, so almost every mistake in prompt construction is invisible in the result.
+    """
+
+    def __init__(self, answer: str = "A canned answer [1].") -> None:
+        self.answer = answer
+        self.prompts: list[str] = []
+
+    def generate(self, prompt: str) -> str:
+        self.prompts.append(prompt)
+        return self.answer
+
+
+class FakeRetrievalService:
+    """Returns a fixed list of chunks instead of querying a database."""
+
+    def __init__(self, chunks: list[RetrievedChunk] | None = None) -> None:
+        self.chunks = chunks if chunks is not None else []
+        self.calls: list[tuple[str, int]] = []
+
+    def retrieve(self, question: str, top_k: int = DEFAULT_TOP_K) -> list[RetrievedChunk]:
+        self.calls.append((question, top_k))
+        return list(self.chunks)
