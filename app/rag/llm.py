@@ -19,6 +19,20 @@ MAX_ANSWER_TOKENS = 1024
 REQUEST_TIMEOUT_SECONDS = 60.0
 
 
+class LLMError(RuntimeError):
+    """The model endpoint could not be reached, or refused the request.
+
+    Raised instead of letting httpx's own exceptions escape. Callers upstream -- the HTTP
+    layer in particular -- then translate one of this project's error types rather than
+    needing to know which transport library this module happens to use. Swapping httpx for
+    a vendor SDK stays a change this module absorbs, instead of one that silently turns a
+    handled failure into an unhandled one.
+
+    The original exception is chained, so the status code and the provider's message are
+    still there to be read.
+    """
+
+
 class LLMClient:
     """A thin wrapper around an OpenAI-compatible chat completions endpoint.
 
@@ -53,20 +67,28 @@ class LLMClient:
         if not prompt.strip():
             raise ValueError("prompt must not be empty")
 
-        response = self._client.post(
-            f"{self.base_url}/chat/completions",
-            headers={"Authorization": f"Bearer {self.api_key}"},
-            json={
-                "model": self.model,
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": MAX_ANSWER_TOKENS,
-            },
-            timeout=self.timeout,
-        )
-        # HTTP errors propagate as httpx.HTTPStatusError, which carries the status and the
-        # provider's message. Translating them here would discard the only diagnostic the
-        # provider gives.
-        response.raise_for_status()
+        try:
+            response = self._client.post(
+                f"{self.base_url}/chat/completions",
+                headers={"Authorization": f"Bearer {self.api_key}"},
+                json={
+                    "model": self.model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": MAX_ANSWER_TOKENS,
+                },
+                timeout=self.timeout,
+            )
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            # HTTPError is the base of both HTTPStatusError (the endpoint answered, with a
+            # failure) and RequestError (it could not be reached at all), so one clause
+            # covers every transport failure. The text is kept verbatim: it carries the
+            # status and the provider's message, which are the only diagnostics there are.
+            raise LLMError(f"the model endpoint failed: {exc}") from exc
+
+        # Deliberately not wrapped: a 200 whose body has no `choices` means the endpoint's
+        # contract changed. That is this project's bug to see loudly, not an upstream
+        # outage to report politely.
         return response.json()["choices"][0]["message"]["content"]
 
 

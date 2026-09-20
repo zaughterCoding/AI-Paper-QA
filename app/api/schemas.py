@@ -16,6 +16,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.services.retrieval import DEFAULT_TOP_K, MAX_TOP_K
+
 
 class DocumentCreateRequest(BaseModel):
     """Body of POST /documents.
@@ -66,3 +68,55 @@ class DocumentListItem(BaseModel):
     title: str
     source: str
     created_at: datetime
+
+
+class AskRequest(BaseModel):
+    """Body of POST /ask.
+
+    ``top_k``'s bounds are imported from the retrieval service rather than written here as
+    literals. Both layers check them on purpose: the schema answers without a database
+    round trip and names the offending field, while the service is the authority, since it
+    is also called by things that are not HTTP. That is defence in depth, and the checks
+    are not redundant.
+
+    The *number*, though, must have one definition. Two literals would drift, and the
+    failure is silent: raising ``MAX_TOP_K`` to 30 with a 20 left here would leave the API
+    rejecting 21 to 30 before the service ever saw the request, with nothing to show why.
+    """
+
+    question: str = Field(min_length=1)
+    top_k: int = Field(default=DEFAULT_TOP_K, ge=1, le=MAX_TOP_K)
+
+
+class SourceItem(BaseModel):
+    """One entry in ``AskResponse.sources``.
+
+    ``chunk_id`` is deliberately absent. A caller refers to a source by which document it
+    came from and where in that document it sits, which ``document_id`` and
+    ``chunk_index`` already say between them; the row id adds nothing a client can use and
+    would tie the response to the storage layout, so re-chunking a document would change
+    identifiers that were already handed out.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    document_id: UUID
+    title: str
+    chunk_index: int
+    text: str
+    # Cosine similarity in [-1, 1], higher meaning closer to the question. Exposed because
+    # it is the only signal a caller has for judging whether an answer's sources are
+    # actually about the question -- the answer text itself reads the same either way.
+    score: float
+
+
+class AskResponse(BaseModel):
+    """Body of POST /ask.
+
+    ``sources`` is not an extra: it is what makes the ``[n]`` markers in ``answer``
+    resolvable. Without it the model's citations would point nowhere and a reader would
+    have no way to check the answer against what it was given.
+    """
+
+    answer: str
+    sources: list[SourceItem]

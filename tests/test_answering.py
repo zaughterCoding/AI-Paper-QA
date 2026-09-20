@@ -26,7 +26,7 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.models.tables import Chunk, Document
 from app.rag import llm
-from app.rag.llm import MAX_ANSWER_TOKENS, LLMClient
+from app.rag.llm import MAX_ANSWER_TOKENS, LLMClient, LLMError
 from app.repositories.chunks import RetrievedChunk
 from app.services.answering import (
     NO_SOURCES_ANSWER,
@@ -377,14 +377,48 @@ def test_raises_on_an_empty_prompt_and_makes_no_request() -> None:
     assert requests == []
 
 
-def test_propagates_an_http_error() -> None:
+def test_raises_llm_error_on_an_http_failure() -> None:
     """A 401 or a rate limit must surface, not be read as an empty answer."""
     client, _ = make_client(
         lambda request: httpx.Response(401, json={"error": {"message": "bad key"}})
     )
 
-    with pytest.raises(httpx.HTTPStatusError):
+    with pytest.raises(LLMError):
         client.generate("hello")
+
+
+def test_raises_llm_error_when_the_endpoint_is_unreachable() -> None:
+    """A dead host is the other half of httpx.HTTPError, and must surface the same way.
+
+    One clause covers both because HTTPStatusError and RequestError share that base; this
+    test is what stops a later narrowing of the except clause from going unnoticed.
+    """
+
+    def explode(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("connection refused")
+
+    client, _ = make_client(explode)
+
+    with pytest.raises(LLMError, match="connection refused"):
+        client.generate("hello")
+
+
+def test_llm_error_keeps_the_status_and_chains_the_original() -> None:
+    """Translating the exception must not discard the diagnostic.
+
+    Callers map every LLMError onto one status code, so the provider's own status is the
+    only thing that says *why* it refused. Losing it would make an expired API key
+    indistinguishable from a provider outage, which are different problems with different
+    fixes.
+    """
+    client, _ = make_client(
+        lambda request: httpx.Response(429, json={"error": {"message": "slow down"}})
+    )
+
+    with pytest.raises(LLMError, match="429") as exc_info:
+        client.generate("hello")
+
+    assert isinstance(exc_info.value.__cause__, httpx.HTTPStatusError)
 
 
 # --- the process-wide client --------------------------------------------------
