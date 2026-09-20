@@ -4,7 +4,9 @@ Tests run against a separate test database, and every test is wrapped in a trans
 that is rolled back afterwards, so tests cannot pollute each other.
 """
 
+import tempfile
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 from sqlalchemy import Engine, create_engine, text
@@ -15,6 +17,22 @@ from app.core.database import Base
 from app.models import tables  # noqa: F401  required so Base.metadata knows the tables
 
 TEST_DB_NAME = "paperqa_test"
+
+# Where pytest's tmp_path fixtures create their directories.
+#
+# Kept inside the project rather than under the user's temp directory, for two reasons.
+# Project caches belong in the project directory, not on the C: drive. And pytest's default
+# base is one shared per-user directory that it tidies by scanning every time a tmp_path is
+# requested, so a single unreadable leftover from an earlier run -- easy to end up with on
+# Windows -- makes every test that uses tmp_path fail before it starts, with an error about
+# the temp directory rather than about the test. A directory the project owns cannot be in
+# that state.
+#
+# Set before any fixture runs, since the base is resolved lazily on first use. Assigning
+# tempfile.tempdir is the documented way to override it.
+TEMP_ROOT = Path(__file__).resolve().parents[1] / ".pytest_cache" / "tmp"
+TEMP_ROOT.mkdir(parents=True, exist_ok=True)
+tempfile.tempdir = str(TEMP_ROOT)
 
 
 def replace_database(url: str, database: str) -> str:
