@@ -1,0 +1,37 @@
+# PostgreSQL with pgvector, for local development.
+#
+# This starts the database and nothing else. The API runs on the host as a plain Python
+# process: keeping it out of a container means no image rebuild on every code change, and
+# one less layer between you and a traceback.
+#
+# The credentials here match the DATABASE_URL default in app/core/config.py and
+# .env.example. Change them in all three places or none.
+#
+#   docker compose up -d postgres     start it
+#   docker compose logs -f postgres   watch it
+#   docker compose down               stop it (the volume, and your data, survives)
+#   docker compose down -v            stop it and delete the data
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: paperqa
+    ports:
+      - "5432:5432"
+    volumes:
+      # A named volume, not a host path: no machine-specific directory in a file that
+      # ships with the repository, and nothing for `git clean` to reach.
+      - paperqa-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # `up -d` returns as soon as the container starts, which is well before PostgreSQL
+      # accepts connections. The first `alembic upgrade head` would fail without this.
+      test: ["CMD-SHELL", "pg_isready -U postgres -d paperqa"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  paperqa-pgdata:
