@@ -26,9 +26,18 @@ htmlcov/
 # Local database data directory
 pgdata/
 
+# Evaluation corpus. The papers are downloaded, not redistributed: run
+# scripts/fetch_corpus.py, which writes them here from the manifest in
+# eval/corpus/sources.json. That manifest stays tracked (it is not a .txt) and
+# is the corpus's only attribution record.
+eval/corpus/*.txt
+
 # Editors
 .idea/
 .vscode/
 
 # Local notes
 docs/
+
+# Claude Rule
+CLAUDE.md
