@@ -1064,8 +1064,12 @@ def test_no_forbidden_term_occurs_anywhere_in_the_corpus(real_questions) -> None
     assert found == []
 
 
-def test_the_shipped_evaluation_set_labels_the_corpus_it_ships_with(real_questions) -> None:
-    """sources.json and the .txt files must describe the same twenty papers.
+def test_the_evaluation_set_labels_the_corpus_the_manifest_describes(real_questions) -> None:
+    """sources.json and the .txt files on disk must describe the same twenty papers.
+
+    The manifest is committed; the papers it names are fetched into place by
+    scripts/fetch_corpus.py, so this is also what fails when someone has the evaluation set
+    but has not run that yet.
 
     Read rather than assumed: the titles in this module and in the loader both come from
     it, so a manifest listing a file that is not there would make the guard above pass
