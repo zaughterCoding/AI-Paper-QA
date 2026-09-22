@@ -59,6 +59,40 @@ text reads the same either way.
 
 ## System Architecture
 
+```mermaid
+flowchart TD
+    A[arXiv paper metadata<br/>sources.json] --> B[fetch_corpus.py]
+    B --> C[Local paper text files<br/>eval/corpus txt files<br/>gitignored]
+    C --> D[load_corpus.py]
+    D --> E[Text chunking]
+    E --> F[SentenceTransformer embeddings]
+    F --> G[(PostgreSQL and pgvector<br/>Docker Compose)]
+    G --> H[FastAPI backend]
+
+    H --> I[POST /documents<br/>ingest custom text]
+    H --> J[POST /ask<br/>question answering]
+    H --> K[GET /health]
+
+    J --> L[Retrieval service]
+    L --> G
+    L --> M[Top-k chunks<br/>with scores]
+    M --> N[OpenAI-compatible LLM API]
+    N --> O[Answer with citations]
+    O --> P[(qa_logs)]
+
+    H --> P
+
+    classDef storage fill:#eef6ff,stroke:#4a90e2,color:#111;
+    classDef api fill:#f3f0ff,stroke:#7b61ff,color:#111;
+    classDef pipeline fill:#eefaf1,stroke:#43a047,color:#111;
+    classDef external fill:#fff7e6,stroke:#f5a623,color:#111;
+
+    class G,P storage;
+    class H,I,J,K api;
+    class B,D,E,F,L,M pipeline;
+    class A,N,O external;
+```
+
 ```
 HTTP        app/api/          parse the request, call one service, translate the result
                               or the exception into a status code. No SQL, no decisions.
@@ -95,6 +129,30 @@ and nothing else, because the API runs on the host as a plain Python process.
 `scripts/db.py`, a small wrapper around the `pg_ctl` and `psql` binaries, is still there as
 a **local-only fallback** for machines without Docker; the two paths are alternatives, not
 steps of one setup.
+
+```mermaid
+flowchart LR
+    Dev[Developer machine] --> Py[Local Python / conda env]
+    Dev --> Docker[Docker Compose]
+
+    Docker --> PG[(PostgreSQL 16<br/>pgvector extension)]
+    Py --> API[FastAPI app<br/>uvicorn]
+    Py --> Scripts[Corpus / migration / evaluation scripts]
+
+    API --> PG
+    Scripts --> PG
+
+    Py --> LLM[OpenAI-compatible<br/>LLM API]
+    Py --> HF[SentenceTransformer<br/>embedding model]
+
+    classDef local fill:#eefaf1,stroke:#43a047,color:#111;
+    classDef docker fill:#eef6ff,stroke:#4a90e2,color:#111;
+    classDef external fill:#fff7e6,stroke:#f5a623,color:#111;
+
+    class Dev,Py,API,Scripts local;
+    class Docker,PG docker;
+    class LLM,HF external;
+```
 
 ```bash
 git clone https://github.com/zaughterCoding/AI-Paper-QA.git
@@ -293,6 +351,30 @@ python scripts/index_pending.py
 
 ## Ask a Question
 
+```mermaid
+sequenceDiagram
+    participant User
+    participant API as FastAPI ask endpoint
+    participant Embed as Embedding model
+    participant DB as PostgreSQL and pgvector
+    participant LLM as OpenAI compatible LLM
+    participant Logs as qa_logs
+
+    User->>API: POST ask question
+    API->>Embed: Embed question
+    Embed-->>API: Query vector
+
+    API->>DB: Similarity search over chunk embeddings
+    DB-->>API: Top-k chunks with scores and sources
+
+    API->>API: Build grounded prompt with retrieved context
+    API->>LLM: Ask using retrieved chunks only
+    LLM-->>API: Answer with citation markers
+
+    API->>Logs: Store question, answer, retrieved chunk ids, latency
+    API-->>User: JSON answer + citations + retrieval scores
+```
+
 ```bash
 curl -X POST http://127.0.0.1:8000/ask \
   -H "Content-Type: application/json" \
@@ -329,6 +411,42 @@ that is the intended behaviour, and `python scripts/fetch_corpus.py` is the fix.
 
 `scripts/evaluate.py` runs every question in `eval/questions.jsonl` through retrieval and
 prints one JSON object to stdout. Progress goes to stderr, so the output stays pipeable.
+
+```mermaid
+flowchart TD
+    A[eval/questions.jsonl] --> B{Question type}
+
+    B --> C[Positive examples<br/>expected_source = paper title]
+    B --> D[Negative examples<br/>expected_source = null]
+
+    C --> E[scripts/evaluate.py]
+    D --> E
+
+    E --> F[Retrieval service]
+    F --> G[(PostgreSQL and pgvector)]
+    G --> H[Retrieved chunks<br/>titles + scores]
+
+    H --> I[Metrics summary]
+    I --> J[Recall at k<br/>retrieval_hit_rate]
+    I --> K[Recall at 1<br/>rank-1 hit rate]
+    I --> L[Top-score distribution<br/>min / median / max]
+    I --> M[Random baseline]
+    I --> N[Threshold sweep]
+    I --> O[Rank-1 miss report]
+
+    N --> P{Can one threshold<br/>separate positives<br/>and negatives?}
+    P --> Q[No reliable threshold<br/>when score distributions overlap]
+
+    classDef data fill:#eef6ff,stroke:#4a90e2,color:#111;
+    classDef metric fill:#eefaf1,stroke:#43a047,color:#111;
+    classDef decision fill:#fff1f1,stroke:#d64545,color:#111;
+    classDef process fill:#f3f0ff,stroke:#7b61ff,color:#111;
+
+    class A,C,D,G,H data;
+    class E,F process;
+    class I,J,K,L,M,N,O metric;
+    class P,Q decision;
+```
 
 ```bash
 python scripts/fetch_corpus.py      # if you have not already
