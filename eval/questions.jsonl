@@ -23,3 +23,13 @@
 {"question": "How close is the fact verification result to the state of the art without retrieval supervision?", "expected_terms": ["4.3%", "state-of-the-art"], "expected_source": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"}
 {"question": "What accuracy does the model reach when answering questions about world leaders with a matching index, and with a mismatched one?", "expected_terms": ["70%", "12%"], "expected_source": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"}
 {"question": "Why do these models hallucinate less than a purely parametric sequence-to-sequence baseline?", "expected_terms": ["non-parametric memory", "factual"], "expected_source": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"}
+{"question": "How many tokens does the draft model propose before the target model verifies them?", "expected_terms": ["speculative decoding", "draft model"], "expected_source": null}
+{"question": "How is the key-value cache compressed to speed up generation?", "expected_terms": ["key-value cache", "kv cache"], "expected_source": null}
+{"question": "How is the model aligned to human values using a learned reward signal?", "expected_terms": ["reinforcement learning from human feedback", "RLHF"], "expected_source": null}
+{"question": "How many experts are activated for each token in a sparsely gated layer?", "expected_terms": ["mixture-of-experts", "sparsely gated"], "expected_source": null}
+{"question": "How are factual associations located and rewritten inside the model weights?", "expected_terms": ["knowledge editing", "factual association"], "expected_source": null}
+{"question": "What passkey retrieval accuracy is reached with a 32k token context window?", "expected_terms": ["passkey", "needle"], "expected_source": null}
+{"question": "How is the model pretrained to follow instructions given as demonstrations?", "expected_terms": ["instruction tuning", "demonstration"], "expected_source": null}
+{"question": "How many bits per weight are used after quantizing the model for deployment?", "expected_terms": ["bits per weight", "quantized weights"], "expected_source": null}
+{"question": "How does the system decide when to retrieve and when to answer from memory alone?", "expected_terms": ["retrieval decision", "decide to retrieve"], "expected_source": null}
+{"question": "How is a statistical watermark embedded in generated text and then detected?", "expected_terms": ["watermark", "green list"], "expected_source": null}

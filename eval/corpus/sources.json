@@ -1,6 +1,6 @@
 {
   "generated_by": "scripts/fetch_corpus.py",
-  "note": "Body text comes from arXiv's official HTML version. References, author blocks, page navigation, figure captions and tables were removed; formulas keep their LaTeX source (lightly cleaned up) rather than being rendered as math.",
+  "note": "Body text comes from arXiv's official HTML version. References, author blocks, page navigation, figure captions and tables were removed; formulas keep their LaTeX source (lightly cleaned up) rather than being rendered as math. Each paper's licence is recorded in license_url, read from its abstract page: the extraction drops the licence notice from the body, so this field is the corpus's only attribution record.",
   "papers": [
     {
       "slug": "attention-is-all-you-need",
@@ -8,6 +8,7 @@
       "title": "Attention Is All You Need",
       "url": "https://arxiv.org/abs/1706.03762",
       "version": "arXiv:1706.03762v7 [cs.CL] 02 Aug 2023",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
       "file": "attention-is-all-you-need.txt",
       "characters": 25059
     },
@@ -17,6 +18,7 @@
       "title": "BERT: Pre-training of Deep Bidirectional Transformers",
       "url": "https://arxiv.org/abs/1810.04805",
       "version": "arXiv:1810.04805v2 [cs.CL] 24 May 2019",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
       "file": "bert.txt",
       "characters": 30692
     },
@@ -26,6 +28,7 @@
       "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
       "url": "https://arxiv.org/abs/2005.11401",
       "version": "arXiv:2005.11401v4 [cs.CL] 12 Apr 2021",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
       "file": "retrieval-augmented-generation.txt",
       "characters": 31286
     },
@@ -35,6 +38,7 @@
       "title": "Dense Passage Retrieval for Open-Domain Question Answering",
       "url": "https://arxiv.org/abs/2004.04906",
       "version": "arXiv:2004.04906v3 [cs.CL] 30 Sep 2020",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
       "file": "dense-passage-retrieval.txt",
       "characters": 33907
     },
@@ -44,8 +48,159 @@
       "title": "Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks",
       "url": "https://arxiv.org/abs/1908.10084",
       "version": "arXiv:1908.10084v1 [cs.CL] 27 Aug 2019",
+      "license_url": "http://creativecommons.org/licenses/by-sa/4.0/",
       "file": "sentence-bert.txt",
       "characters": 26564
+    },
+    {
+      "slug": "longformer",
+      "arxiv_id": "2004.05150",
+      "title": "Longformer: The Long-Document Transformer",
+      "url": "https://arxiv.org/abs/2004.05150",
+      "version": "arXiv:2004.05150v2 [cs.CL] 02 Dec 2020",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+      "file": "longformer.txt",
+      "characters": 34165
+    },
+    {
+      "slug": "big-bird",
+      "arxiv_id": "2007.14062",
+      "title": "Big Bird: Transformers for Longer Sequences",
+      "url": "https://arxiv.org/abs/2007.14062",
+      "version": "arXiv:2007.14062v2 [cs.LG] 08 Jan 2021",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+      "file": "big-bird.txt",
+      "characters": 34899
+    },
+    {
+      "slug": "flash-attention",
+      "arxiv_id": "2205.14135",
+      "title": "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness",
+      "url": "https://arxiv.org/abs/2205.14135",
+      "version": "arXiv:2205.14135v2 [cs.LG] 23 Jun 2022",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+      "file": "flash-attention.txt",
+      "characters": 31221
+    },
+    {
+      "slug": "colbert",
+      "arxiv_id": "2004.12832",
+      "title": "ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT",
+      "url": "https://arxiv.org/abs/2004.12832",
+      "version": "arXiv:2004.12832v2 [cs.IR] 04 Jun 2020",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+      "file": "colbert.txt",
+      "characters": 47669
+    },
+    {
+      "slug": "realm",
+      "arxiv_id": "2002.08909",
+      "title": "REALM: Retrieval-Augmented Language Model Pre-Training",
+      "url": "https://arxiv.org/abs/2002.08909",
+      "version": "arXiv:2002.08909v1 [cs.CL] 10 Feb 2020",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+      "file": "realm.txt",
+      "characters": 31889
+    },
+    {
+      "slug": "fusion-in-decoder",
+      "arxiv_id": "2007.01282",
+      "title": "Leveraging Passage Retrieval with Generative Models for Open Domain Question Answering",
+      "url": "https://arxiv.org/abs/2007.01282",
+      "version": "arXiv:2007.01282v2 [cs.CL] 03 Feb 2021",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+      "file": "fusion-in-decoder.txt",
+      "characters": 13429
+    },
+    {
+      "slug": "rocketqa",
+      "arxiv_id": "2010.08191",
+      "title": "RocketQA: An Optimized Training Approach to Dense Passage Retrieval for Open-Domain Question Answering",
+      "url": "https://arxiv.org/abs/2010.08191",
+      "version": "arXiv:2010.08191v2 [cs.CL] 12 May 2021",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+      "file": "rocketqa.txt",
+      "characters": 33187
+    },
+    {
+      "slug": "unsupervised-dense-retrieval",
+      "arxiv_id": "2112.09118",
+      "title": "Unsupervised Dense Information Retrieval with Contrastive Learning",
+      "url": "https://arxiv.org/abs/2112.09118",
+      "version": "arXiv:2112.09118v4 [cs.IR] 29 Aug 2022",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "file": "unsupervised-dense-retrieval.txt",
+      "characters": 38730
+    },
+    {
+      "slug": "distilbert",
+      "arxiv_id": "1910.01108",
+      "title": "DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter",
+      "url": "https://arxiv.org/abs/1910.01108",
+      "version": "arXiv:1910.01108v4 [cs.CL] 01 Mar 2020",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+      "file": "distilbert.txt",
+      "characters": 12580
+    },
+    {
+      "slug": "albert",
+      "arxiv_id": "1909.11942",
+      "title": "ALBERT: A Lite BERT for Self-supervised Learning of Language Representations",
+      "url": "https://arxiv.org/abs/1909.11942",
+      "version": "arXiv:1909.11942v6 [cs.CL] 09 Feb 2020",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+      "file": "albert.txt",
+      "characters": 28888
+    },
+    {
+      "slug": "electra",
+      "arxiv_id": "2003.10555",
+      "title": "ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators",
+      "url": "https://arxiv.org/abs/2003.10555",
+      "version": "arXiv:2003.10555v1 [cs.CL] 23 Mar 2020",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+      "file": "electra.txt",
+      "characters": 29078
+    },
+    {
+      "slug": "roberta",
+      "arxiv_id": "1907.11692",
+      "title": "RoBERTa: A Robustly Optimized BERT Pretraining Approach",
+      "url": "https://arxiv.org/abs/1907.11692",
+      "version": "arXiv:1907.11692v1 [cs.CL] 26 Jul 2019",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+      "file": "roberta.txt",
+      "characters": 30248
+    },
+    {
+      "slug": "simcse",
+      "arxiv_id": "2104.08821",
+      "title": "SimCSE: Simple Contrastive Learning of Sentence Embeddings",
+      "url": "https://arxiv.org/abs/2104.08821",
+      "version": "arXiv:2104.08821v4 [cs.CL] 18 May 2022",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+      "file": "simcse.txt",
+      "characters": 27530
+    },
+    {
+      "slug": "lora",
+      "arxiv_id": "2106.09685",
+      "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+      "url": "https://arxiv.org/abs/2106.09685",
+      "version": "arXiv:2106.09685v2 [cs.CL] 16 Oct 2021",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+      "file": "lora.txt",
+      "characters": 35045
+    },
+    {
+      "slug": "t5",
+      "arxiv_id": "1910.10683",
+      "title": "Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer",
+      "url": "https://arxiv.org/abs/1910.10683",
+      "version": "arXiv:1910.10683v4 [cs.LG] 19 Sep 2023",
+      "license_url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+      "file": "t5.txt",
+      "characters": 138701
     }
   ]
 }

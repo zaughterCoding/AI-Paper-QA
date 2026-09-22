@@ -15,6 +15,13 @@ with one defect each, and every rejection is asserted to name the line.
 guard against the corpus being refetched under an evaluation set whose labels no longer
 describe it. Titles and terms that stop matching would otherwise leave every question
 still loading and still scoring, with the expected source simply never found again.
+
+That check runs on both kinds of question and in opposite directions. A positive's terms
+must occur in the document it names; a negative's must occur nowhere in the corpus at all,
+because a term that does occur is proof that the corpus holds an answer the question claims
+it does not. The corpus files are the only place either claim can be tested, which makes
+this the one thing standing behind the negative set -- the loader can check that a negative
+is well-formed, but only the corpus can say whether it is true.
 """
 
 import json
@@ -30,10 +37,16 @@ from scripts.evaluate import (
     collect_top_scores,
     compute_hit_rate,
     compute_rank1_hit_rate,
+    describe_negatives_above,
     describe_rank1_misses,
     load_eval_questions,
+    negative_results,
+    positive_results,
+    separating_gap,
     summarize,
     summarize_top_scores,
+    threshold_separates,
+    threshold_sweep,
 )
 from scripts.fetch_corpus import PAPERS
 
@@ -67,14 +80,38 @@ def chunk(title: str, score: float) -> RetrievedChunk:
     )
 
 
-def question(text: str = "What is self-attention?", source: str = ATTENTION) -> EvalQuestion:
+def question(text: str = "What is self-attention?", source: str | None = ATTENTION) -> EvalQuestion:
     return EvalQuestion(question=text, expected_terms=["self-attention"], expected_source=source)
 
 
 def result(
-    chunks: list[RetrievedChunk], text: str = "What is self-attention?", source: str = ATTENTION
+    chunks: list[RetrievedChunk],
+    text: str = "What is self-attention?",
+    source: str | None = ATTENTION,
 ) -> EvalResult:
     return EvalResult(question=question(text, source), retrieved=chunks)
+
+
+def positive_questions(questions: list[EvalQuestion]) -> list[EvalQuestion]:
+    """The positive questions out of a loaded file.
+
+    Separate from ``positive_results``, which splits ``EvalResult`` and is what the metrics
+    use. A loaded file holds ``EvalQuestion``, so passing one to that helper reaches for
+    ``.question`` on a str.
+    """
+    return [question for question in questions if not question.is_negative]
+
+
+def negative(
+    chunks: list[RetrievedChunk], text: str = "What learning rate schedule is recommended?"
+) -> EvalResult:
+    """A question the corpus is not expected to answer, with chunks retrieved anyway.
+
+    The chunks matter: a negative that retrieved nothing is the outcome the sweep hopes
+    for, and one that retrieved something is what the sweep exists to price. Tests that
+    want the first pass an empty list to ``result`` with ``source=None`` directly.
+    """
+    return EvalResult(question=question(text, source=None), retrieved=chunks)
 
 
 # --- loading: the happy path --------------------------------------------------
@@ -275,6 +312,141 @@ def test_load_rejects_a_file_with_no_questions(tmp_path) -> None:
         load_eval_questions(path)
 
 
+# --- loading: the negative marker ----------------------------------------------
+
+
+def test_load_reads_a_negative_question(tmp_path) -> None:
+    """A null expected_source is a question, not a missing value.
+
+    It survives the round trip as None, which is the whole of what marks the question as
+    one the corpus is not expected to answer.
+    """
+    path = write(
+        tmp_path,
+        {"question": "Q1", "expected_terms": ["a"], "expected_source": ATTENTION},
+        {"question": "Q2", "expected_terms": ["b"], "expected_source": None},
+    )
+
+    questions = load_eval_questions(path)
+
+    assert questions[0].is_negative is False
+    assert questions[1].is_negative is True
+    assert questions[1].expected_source is None
+
+
+def test_load_rejects_an_empty_string_source_and_says_what_null_is_for(tmp_path) -> None:
+    """The empty string is not a way of saying "no document", and not a title either.
+
+    Let through, it would equal no document's title and the question would score as a
+    permanent, unexplained miss. The message has to name null: a writer who typed "" was
+    reaching for the negative marker and needs to be told where it actually is.
+    """
+    path = write(tmp_path, {"question": "Q1", "expected_terms": ["a"], "expected_source": ""})
+
+    with pytest.raises(ValueError, match="null") as error:
+        load_eval_questions(path)
+
+    assert "non-empty" in str(error.value)
+
+
+def test_load_rejects_a_file_where_every_question_is_negative(tmp_path) -> None:
+    """Every rate here is a fraction of the positives, so such a file could only fail
+    later, further from the cause and with a worse message."""
+    path = write(
+        tmp_path,
+        {"question": "Q1", "expected_terms": ["a"], "expected_source": None},
+        {"question": "Q2", "expected_terms": ["b"], "expected_source": None},
+    )
+
+    with pytest.raises(ValueError, match="no positive questions"):
+        load_eval_questions(path)
+
+
+def test_load_rejects_a_term_that_is_both_required_and_forbidden(tmp_path) -> None:
+    """The two uses of expected_terms contradict each other, and no corpus can satisfy
+    both.
+
+    Naming both questions is the point. Failing here instead of in the corpus check is the
+    difference between "some term is missing from one file and present in another" and
+    "these two questions disagree, and one of them is wrong".
+    """
+    path = write(
+        tmp_path,
+        {"question": "asks for it", "expected_terms": ["warmup"], "expected_source": ATTENTION},
+        {"question": "rules it out", "expected_terms": ["warmup"], "expected_source": None},
+    )
+
+    with pytest.raises(ValueError, match="warmup") as error:
+        load_eval_questions(path)
+
+    assert "asks for it" in str(error.value)
+    assert "rules it out" in str(error.value)
+
+
+def test_load_says_how_to_write_a_negative_when_it_rejects_an_unknown_field(tmp_path) -> None:
+    """The rejection has to name the way through, not only the way out.
+
+    A null expected_source is the least obvious part of the format, and the most natural
+    wrong move -- inventing an "is_negative": true field -- lands on this rejection. A
+    message saying only that the field is unknown leaves the writer to guess.
+    """
+    path = write(
+        tmp_path,
+        {
+            "question": "Q1",
+            "expected_terms": ["a"],
+            "expected_source": None,
+            "is_negative": True,
+        },
+    )
+
+    with pytest.raises(ValueError, match="is_negative") as error:
+        load_eval_questions(path)
+
+    assert "null" in str(error.value)
+
+
+# --- what a negative question means --------------------------------------------
+
+
+def test_a_negatives_terms_are_forbidden_and_a_positives_are_required() -> None:
+    """The two properties exist as a pair so a caller cannot reach for the wrong side.
+
+    There is deliberately no single attribute holding "the terms", because its meaning
+    depends on the kind of question and using it on the wrong kind would invert the
+    corpus check silently.
+    """
+    assert question().required_terms == ["self-attention"]
+    assert question().forbidden_terms == []
+
+    assert question(source=None).required_terms == []
+    assert question(source=None).forbidden_terms == ["self-attention"]
+
+
+def test_expected_rank_is_an_error_for_a_negative_question() -> None:
+    """Not None, which is what the comparison would return if it were allowed to run.
+
+    A chunk title is never None, so the loop finds no match and returns the same None it
+    returns for a positive whose source was genuinely not retrieved. That is a silent wrong
+    answer in place of a missing one: it makes every negative a retrieval failure, in the
+    rate and in the list of names meant to be acted on.
+    """
+    with pytest.raises(ValueError, match="negative"):
+        negative([chunk(BERT, 0.9)]).expected_rank
+
+
+def test_the_positives_and_negatives_split_the_list_without_losing_anyone() -> None:
+    results = [
+        result([chunk(ATTENTION, 0.6)]),
+        negative([chunk(BERT, 0.9)]),
+        result([], text="Q3"),
+    ]
+
+    assert len(positive_results(results)) == 2
+    assert len(negative_results(results)) == 1
+    assert len(positive_results(results)) + len(negative_results(results)) == len(results)
+
+
 # --- hit rate -----------------------------------------------------------------
 
 
@@ -416,9 +588,14 @@ def test_summarize_top_scores_reveals_a_skipped_question_through_its_count() -> 
     assert summarize_top_scores(results)["count"] == 1
 
 
-def test_summarize_top_scores_rejects_a_list_with_no_scores() -> None:
-    with pytest.raises(ValueError, match="no scores"):
-        summarize_top_scores([result([])])
+def test_summarize_top_scores_returns_none_when_there_are_no_scores() -> None:
+    """None is one of the answers this has to be able to give.
+
+    Not a dict of zeroes, which would read as a measured minimum of 0.0, and not an
+    exception: an empty negative distribution is the best outcome a run can have, and
+    raising on it would report a clean run as a broken one.
+    """
+    assert summarize_top_scores([result([])]) is None
 
 
 def test_summary_keeps_four_decimals() -> None:
@@ -432,7 +609,7 @@ def test_summary_keeps_four_decimals() -> None:
 
     summary = summarize(results)
 
-    assert summary["top_score"]["min"] == 0.3591
+    assert summary["top_score_positives"]["min"] == 0.3591
     assert summary["avg_top_score"] == 0.5137
 
 
@@ -471,11 +648,20 @@ def test_summary_has_exactly_the_documented_keys() -> None:
 
     assert set(summary) == {
         "question_count",
+        "positive_count",
+        "negative_count",
         "retrieval_hit_rate",
         "retrieval_rank1_hit_rate",
         "avg_top_score",
-        "top_score",
+        "top_score_positives",
+        "top_score_negatives",
+        "negative_scores_missing",
+        "false_positive_rate_no_threshold",
         "rank1_misses",
+        "negatives_above_positive_min",
+        "threshold_separates",
+        "separating_gap",
+        "threshold_sweep",
     }
 
 
@@ -526,18 +712,255 @@ def test_describe_rank1_misses_is_empty_when_everything_ranks_first() -> None:
 
 def test_describe_rank1_misses_length_matches_the_strict_rate() -> None:
     """The list and the rate must agree: a list shorter than the failures would send
-    someone to fix three questions while four are broken."""
+    someone to fix three questions while four are broken.
+
+    A negative is in the input on purpose. Its expected_rank is undefined rather than
+    non-1, so a version that failed to filter would either raise here or -- comparing the
+    null against 1 and finding them different -- list a question that was never expected to
+    succeed as one that failed. Neither shows up while every input is a positive, which is
+    all this test used to be.
+    """
     results = [
         result([chunk(ATTENTION, 0.6)]),
         result([chunk(BERT, 0.5)], text="Q2"),
         result([chunk(BERT, 0.4), chunk(ATTENTION, 0.3)], text="Q3"),
         result([], text="Q4"),
+        negative([chunk(BERT, 0.9)]),
     ]
 
     misses = len(describe_rank1_misses(results))
+    positives = positive_results(results)
 
     assert misses == 3
-    assert compute_rank1_hit_rate(results) == (len(results) - misses) / len(results)
+    assert compute_rank1_hit_rate(results) == (len(positives) - misses) / len(positives)
+
+
+# --- the rates, with negatives in the list ------------------------------------
+
+
+def test_hit_rate_is_a_fraction_of_the_positives_not_of_every_question() -> None:
+    """Adding a negative must not move the rate.
+
+    A negative cannot hit, so counting it in the denominator would lower the rate by
+    exactly its share -- a number that changes whenever the negative set is edited and says
+    nothing about retrieval.
+    """
+    positives = [result([chunk(ATTENTION, 0.6)]), result([chunk(BERT, 0.5)], text="Q2")]
+
+    assert compute_hit_rate(positives) == 0.5
+    assert compute_hit_rate([*positives, negative([chunk(BERT, 0.9)])]) == 0.5
+
+
+def test_rank1_hit_rate_is_a_fraction_of_the_positives_too() -> None:
+    positives = [result([chunk(ATTENTION, 0.6)]), result([chunk(BERT, 0.5)], text="Q2")]
+
+    assert compute_rank1_hit_rate(positives) == 0.5
+    assert compute_rank1_hit_rate([*positives, negative([chunk(BERT, 0.9)])]) == 0.5
+
+
+def test_the_rates_refuse_a_list_of_only_negatives() -> None:
+    """Distinct from the empty-list guard beside it. An empty list is a caller that passed
+    nothing; a list of negatives is a caller that passed the wrong thing."""
+    with pytest.raises(ValueError, match="no positive questions"):
+        compute_hit_rate([negative([chunk(BERT, 0.9)])])
+
+    with pytest.raises(ValueError, match="no positive questions"):
+        compute_rank1_hit_rate([negative([chunk(BERT, 0.9)])])
+
+
+def test_avg_top_score_covers_the_positives_only() -> None:
+    """Over both kinds it would fall as negatives are added, with retrieval unchanged.
+
+    The fall would look like a retrieval regression and would really be an artefact of the
+    evaluation set growing.
+    """
+    positives = [result([chunk(ATTENTION, 0.6)])]
+
+    assert summarize(positives)["avg_top_score"] == 0.6
+    assert summarize([*positives, negative([chunk(BERT, 0.1)])])["avg_top_score"] == 0.6
+
+
+def test_describe_rank1_misses_ignores_negatives() -> None:
+    """They cannot rank first or fail to, so they belong in neither the list nor its
+    length."""
+    results = [result([chunk(BERT, 0.6), chunk(ATTENTION, 0.5)]), negative([chunk(BERT, 0.9)])]
+
+    assert [row["question"] for row in describe_rank1_misses(results)] == [
+        "What is self-attention?"
+    ]
+
+
+# --- the negatives, and the threshold that is not there yet --------------------
+
+
+def test_false_positive_rate_without_a_threshold_counts_every_negative_that_scored() -> None:
+    """1.0 today, and reached by counting rather than asserted.
+
+    Retrieval applies no threshold, so a negative that returned anything at all is a false
+    positive. That is a real measurement of a real behaviour, and it will move by itself on
+    the day retrieval starts declining -- which a hardcoded 1.0 would not.
+    """
+    results = [
+        result([chunk(ATTENTION, 0.6)]),
+        negative([chunk(BERT, 0.9)]),
+        negative([], text="Q3"),
+    ]
+
+    summary = summarize(results)
+
+    assert summary["false_positive_rate_no_threshold"] == 0.5
+    assert summary["negative_scores_missing"] == 1
+
+
+def test_false_positive_rate_is_none_when_there_are_no_negatives() -> None:
+    """0.0 would read as "no negative was ever a false positive", which is a claim about
+    negatives that do not exist. None says nothing was tested, which is the truth."""
+    assert summarize([result([chunk(ATTENTION, 0.6)])])["false_positive_rate_no_threshold"] is None
+
+
+def test_threshold_separates_the_two_ranges_when_they_do_not_overlap() -> None:
+    assert threshold_separates([0.50, 0.60], [0.30, 0.40]) is True
+
+
+def test_threshold_separates_is_false_when_the_ranges_overlap() -> None:
+    assert threshold_separates([0.50, 0.60], [0.30, 0.55]) is False
+
+
+@pytest.mark.parametrize(
+    ("positives", "negatives"),
+    [([0.50], []), ([], [0.30]), ([], [])],
+)
+def test_threshold_separates_is_none_when_a_side_is_missing(
+    positives: list[float], negatives: list[float]
+) -> None:
+    """The tri-state, and the whole reason this is not a plain bool.
+
+    False would report that a comparison failed when no comparison could be made. The two
+    send a reader to different places -- False to the score distributions, None to the
+    evaluation set -- and a summary read without negatives would otherwise look like a
+    corpus that fails to separate.
+    """
+    assert threshold_separates(positives, negatives) is None
+
+
+def test_separating_gap_is_the_distance_between_the_closest_pair() -> None:
+    assert separating_gap([0.50, 0.60], [0.30, 0.40]) == pytest.approx(0.10)
+
+
+def test_separating_gap_goes_negative_when_the_ranges_overlap() -> None:
+    """The sign is the finding, so it is kept rather than clamped at zero."""
+    assert separating_gap([0.50], [0.55]) == pytest.approx(-0.05)
+
+
+def test_separating_gap_is_none_when_a_side_is_missing() -> None:
+    assert separating_gap([0.50], []) is None
+    assert separating_gap([], [0.30]) is None
+
+
+def test_threshold_sweep_uses_the_observed_scores_as_its_thresholds() -> None:
+    """Every row is then a decision the data distinguishes, and no grid spacing has to be
+    chosen or defended."""
+    sweep = threshold_sweep([0.5, 0.7], [0.2, 0.7])
+
+    assert [row["threshold"] for row in sweep] == [0.2, 0.5, 0.7]
+
+
+def test_threshold_sweep_walks_from_everything_kept_to_everything_rejected() -> None:
+    """Both endpoints present, so a row exists for any operating point worth discussing."""
+    sweep = threshold_sweep([0.5, 0.7], [0.2, 0.4])
+
+    assert sweep[0] == {"threshold": 0.2, "positives_kept": 2, "negatives_rejected": 0}
+    assert sweep[-1] == {"threshold": 0.7, "positives_kept": 1, "negatives_rejected": 2}
+
+
+def test_threshold_sweep_decides_a_tie_the_same_way_on_both_sides() -> None:
+    """A score equal to the threshold is kept on both sides, never kept on one and
+    rejected on the other.
+
+    Equality is certain here rather than a rare edge, because the thresholds are drawn from
+    the scores. Writing the negative side as ``<=`` while the positive side is ``>=`` would
+    produce a row that keeps a negative and reports it rejected on the same line -- and a
+    reader taking the positive column at face value would conclude the threshold works.
+    """
+    (row,) = threshold_sweep([0.5], [0.5])
+
+    assert row == {"threshold": 0.5, "positives_kept": 1, "negatives_rejected": 0}
+
+
+def test_threshold_sweep_reports_its_thresholds_unrounded() -> None:
+    """A threshold is a score, and rounding it can put it above itself.
+
+    0.42006 rounds to 0.4201, which is greater -- so a reader comparing a row against the
+    scores it was built from would find a score below the threshold that the row counted as
+    kept. The rest of the summary rounds freely for the same reason it rounds here at all;
+    this column is the one place where rounding changes what the number means.
+    """
+    sweep = threshold_sweep([0.42006], [0.1])
+
+    assert max(row["threshold"] for row in sweep) == 0.42006
+
+
+def test_threshold_sweep_is_none_when_a_side_is_missing() -> None:
+    """A trade-off needs two sides. An empty list would read as a sweep that ran and found
+    nothing to say."""
+    assert threshold_sweep([0.5], []) is None
+    assert threshold_sweep([], [0.5]) is None
+
+
+def test_describe_negatives_above_the_floor_names_the_ones_that_outscored_it() -> None:
+    """The actionable part of a failed separation.
+
+    Each of these is a question the corpus cannot answer that retrieval nonetheless scored
+    as confidently as the least confident question it can. Naming them separates two causes
+    a single number merges -- scores too close because the corpus nearly answers these,
+    versus an embedding space that does not separate them -- and only reading the questions
+    can say which it is.
+    """
+    results = [
+        result([chunk(ATTENTION, 0.40)]),
+        negative([chunk(BERT, 0.55)], text="outscored it"),
+        negative([chunk(BERT, 0.10)], text="comfortably below"),
+    ]
+
+    above = describe_negatives_above(
+        negative_results(results), collect_top_scores(positive_results(results))
+    )
+
+    assert [row["question"] for row in above] == ["outscored it"]
+
+
+def test_describe_negatives_above_includes_one_sitting_exactly_on_the_floor() -> None:
+    """At the floor, not merely above it.
+
+    A threshold placed at the lowest positive score keeps a negative that ties it, so such
+    a negative belongs in the list of things that threshold fails to turn away.
+    """
+    above = describe_negatives_above([negative([chunk(BERT, 0.40)])], [0.40])
+
+    assert len(above) == 1
+
+
+def test_describe_negatives_above_is_empty_without_positives() -> None:
+    """No floor to compare against, so nothing is above it.
+
+    An empty list rather than every negative, which is what comparing against an absent
+    floor would produce.
+    """
+    assert describe_negatives_above([negative([chunk(BERT, 0.9)])], []) == []
+
+
+def test_summarize_refuses_a_run_with_no_positives_before_it_computes_anything() -> None:
+    """The guard runs first, so the error names the evaluation set and not the statistics
+    module.
+
+    summarize builds a dict literal, and a literal evaluates its values in source order --
+    so the same guard written as one of those values would run only after avg_top_score had
+    been computed, well before it in the literal. On a list of negatives that raises
+    ``StatisticsError: mean requires at least one data point``, which main() catches as a
+    ValueError and prints, sending the reader to look for a bug in a mean.
+    """
+    with pytest.raises(ValueError, match="no positive questions"):
+        summarize([negative([chunk(BERT, 0.9)])])
 
 
 # --- the real evaluation set --------------------------------------------------
@@ -550,6 +973,18 @@ def real_questions() -> list[EvalQuestion]:
 
 def test_the_shipped_evaluation_set_loads(real_questions) -> None:
     assert len(real_questions) >= 20
+
+
+def test_the_shipped_evaluation_set_has_both_kinds_of_question(real_questions) -> None:
+    """Both kinds, because either alone silently disables half the summary.
+
+    With no negatives the sweep has nothing to price and ``threshold_separates`` is null;
+    with no positives every rate is undefined and the file does not load at all. Neither
+    absence announces itself in the output -- a summary with no negatives looks exactly
+    like a corpus that answers everything -- so the file is checked here instead.
+    """
+    assert positive_questions(real_questions) != []
+    assert [q for q in real_questions if q.is_negative] != []
 
 
 def test_the_shipped_evaluation_set_has_no_duplicate_questions(real_questions) -> None:
@@ -569,7 +1004,10 @@ def test_every_expected_source_is_a_corpus_title(real_questions) -> None:
     """
     titles = {paper.title for paper in PAPERS}
 
-    unknown = sorted({q.expected_source for q in real_questions} - titles)
+    # Positives only. A negative's expected_source is None, which is not an unknown title
+    # but the absence of one -- and mixing it into this set would also make the sort below
+    # compare None against str.
+    unknown = sorted({q.expected_source for q in real_questions if not q.is_negative} - titles)
 
     assert unknown == []
 
@@ -584,19 +1022,50 @@ def test_every_expected_term_appears_in_the_document_it_is_labelled_with(real_qu
     files = {paper.title: CORPUS_DIR / f"{paper.slug}.txt" for paper in PAPERS}
 
     missing = []
-    for question in real_questions:
+    for question in positive_questions(real_questions):
         text = files[question.expected_source].read_text(encoding="utf-8")
         missing += [
             (question.expected_source, term)
-            for term in question.expected_terms
+            for term in question.required_terms
             if term not in text
         ]
 
     assert missing == []
 
 
+def test_no_forbidden_term_occurs_anywhere_in_the_corpus(real_questions) -> None:
+    """The negative half of the corpus check, and the only mechanical check there is.
+
+    A question may be written claiming the corpus cannot answer it, but that claim is about
+    files sitting in another directory, and the line loads and scores whether or not it is
+    true. It cannot be tested by rereading the question: an answer is allowed to be phrased
+    any way at all, and ten questions against twenty papers is more than a careful person
+    reliably holds. The term can be tested, so it is.
+
+    Necessary and not sufficient, and the gap is worth stating plainly rather than leaving
+    implied. A term absent from every file proves that term is absent; it does not prove
+    the question is unanswerable, because the corpus may answer it in words the term does
+    not cover. This guard can fail a negative that is definitely wrong. It cannot certify
+    one as definitely right, and nothing in this suite can.
+    """
+    files = {
+        path.name: path.read_text(encoding="utf-8")
+        for path in sorted(CORPUS_DIR.glob("*.txt"))
+    }
+
+    found = [
+        (question.question, term, name)
+        for question in real_questions
+        for term in question.forbidden_terms
+        for name, text in files.items()
+        if term in text
+    ]
+
+    assert found == []
+
+
 def test_the_shipped_evaluation_set_labels_the_corpus_it_ships_with(real_questions) -> None:
-    """sources.json and the .txt files must describe the same five papers.
+    """sources.json and the .txt files must describe the same twenty papers.
 
     Read rather than assumed: the titles in this module and in the loader both come from
     it, so a manifest listing a file that is not there would make the guard above pass

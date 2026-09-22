@@ -21,6 +21,7 @@ from scripts.fetch_corpus import (
     PAPERS,
     _latex_to_text,
     _normalize_whitespace,
+    extract_license,
     extract_text,
     extract_version,
     fetch_paper,
@@ -122,6 +123,22 @@ def test_ignores_the_bibliography() -> None:
 
     assert "cited paper" not in text
     assert "References" not in text
+
+
+def test_escaped_markup_in_the_source_arrives_as_text() -> None:
+    """`&lt;b&gt;` in a paper becomes `<b>` in the extracted body, and is not a defect.
+
+    T5's appendix reproduces web documents from C4, which carry their own markup. arXiv
+    escapes it in the HTML and `convert_charrefs` resolves it again, so the body text holds
+    literal tags. The corpus checks have to allow that: a tag-shaped string can only have
+    come from the paper, since the extractor emits text nodes and formula alttext and never
+    tags.
+    """
+    html = _page('<p class="ltx_p">An example: &lt;b&gt;bold&lt;/b&gt; and &lt;br&gt;.</p>')
+
+    text = extract_text(html)
+
+    assert "<b>bold</b>" in text
 
 
 def test_raises_when_the_body_marker_is_missing() -> None:
@@ -299,6 +316,60 @@ def test_extract_version_returns_empty_when_absent() -> None:
     assert extract_version("<html><body>no watermark</body></html>") == ""
 
 
+# --- licence ------------------------------------------------------------------
+#
+# The licence never reaches the corpus files: it sits above the body marker, so the
+# extractor drops it by design, which leaves sources.json as the only attribution record
+# anywhere in the repository. arXiv renders the two kinds with different markup, and
+# getting one wrong is invisible -- the field is simply empty, exactly like a paper whose
+# licence could not be read.
+
+
+def test_extract_license_reads_the_plain_link() -> None:
+    html = (
+        '<div class="abs-license">'
+        '<a href="http://arxiv.org/licenses/nonexclusive-distrib/1.0/" '
+        'title="Rights to this article">view license</a></div>'
+    )
+
+    assert extract_license(html) == "http://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+
+
+def test_extract_license_reads_a_creative_commons_link_nested_in_a_span() -> None:
+    """The CC form puts an `<img>` and a `<span>` between the `<a>` and the link text.
+
+    Regression, and the first version failed silently here: a pattern expecting "view
+    license" to be the link's immediate content matched the non-exclusive licence and
+    returned "" for every CC paper. That is the worst way round, because the CC papers are
+    the ones with the strictest terms and the ones a reader is most likely to be checking,
+    and an empty field cannot be told from an unread one.
+    """
+    html = (
+        '<div class="abs-license">'
+        '<a href="http://creativecommons.org/licenses/by/4.0/" title="Rights to this article" '
+        'class="has_license"> <img alt="license icon" role="presentation" '
+        'src="https://arxiv.org/icons/licenses/by-4.0.png"/> <span>view license</span> </a></div>'
+    )
+
+    assert extract_license(html) == "http://creativecommons.org/licenses/by/4.0/"
+
+
+def test_extract_license_ignores_the_footer_copyright_link() -> None:
+    """The footer links to arXiv's licence *policy*, which is not this paper's licence.
+
+    Matching any href containing "license" would record a help page as the paper's terms.
+    """
+    html = '<a href="https://info.arxiv.org/help/license/index.html">Copyright</a>'
+
+    assert extract_license(html) == ""
+
+
+def test_extract_license_returns_empty_when_absent() -> None:
+    """A page with no licence link is not an error: the manifest is a record, and losing a
+    paper over a metadata request would trade a usable corpus for a complete manifest."""
+    assert extract_license("<html><body>no licence here</body></html>") == ""
+
+
 # --- sanity check while fetching ----------------------------------------------
 #
 # `fetch_paper` needs the network, so these use a fake client. What is being tested is the
@@ -363,12 +434,26 @@ def test_corpus_directory_is_not_empty() -> None:
     assert _corpus_files(), f"{CORPUS_DIR} has no corpus files; run scripts/fetch_corpus.py first"
 
 
-# Markers that should not appear in body text once tags have been stripped.
+# Markers that would mean body text is not body text.
 #
-# Searching for `<` and `>` does not work: both are ordinary math symbols in the corpus
+# `</` is deliberately absent, and its absence is the point. A tag-shaped string in the
+# output is not by itself evidence of a leak: the extractor appends only from handle_data,
+# which receives text nodes, and from a formula's alttext -- real tags are never emitted.
+# So a "<" in the output arrived as a "&lt;" in the source, which means it was in the
+# paper. T5's appendix quotes web documents from C4 that carry their own `<b>` and `<br>`
+# markup; those 32 occurrences are the only ones across all twenty files, and the first
+# version of this list failed on them while the extraction was in fact correct.
+#
+# What remains is markup only arXiv generates. It cannot arrive by that route, so finding
+# it would mean the parser started emitting structure rather than text -- insurance against
+# a rewrite of the extractor rather than against the version above.
+#
+# `&amp;` and `&#` are entity leftovers: convert_charrefs resolves those in text, so seeing
+# one means it was double-escaped in the source.
+#
+# `<` and `>` alone are not searched for at all: both are ordinary math symbols here
 # (`k<n`, `s_{i,j}>s_null`), and `k<n` is shaped exactly like a tag with a name.
-# So only markers that cannot occur inside a math expression are listed.
-_HTML_LEFTOVERS = ("</", "<p>", "<p ", "<div", "<span", "<table", "<tr", "<td",
+_HTML_LEFTOVERS = ("<p>", "<p ", "<div", "<span", "<table", "<tr", "<td",
                    "ltx_", "href=", "xmlns", "class=", "&amp;", "&#")
 
 
@@ -416,6 +501,22 @@ def test_sources_manifest_matches_the_files() -> None:
     for entry in manifest["papers"]:
         assert entry["version"], f"{entry['slug']} has no recorded version"
         assert entry["characters"] > 10_000
+
+
+def test_every_manifest_entry_records_a_licence() -> None:
+    """Every arXiv paper has a licence, so an empty one means the read failed rather than
+    that there is nothing to record.
+
+    This is what would have caught the pattern that matched only the non-exclusive
+    licences. The corpus files themselves carry no attribution -- the extractor removes it
+    along with the rest of the page chrome -- so if the manifest is silent too, nothing in
+    the repository says what these texts may be used for.
+    """
+    manifest = json.loads((CORPUS_DIR / "sources.json").read_text(encoding="utf-8"))
+
+    missing = [entry["slug"] for entry in manifest["papers"] if not entry.get("license_url")]
+
+    assert missing == []
 
 
 def test_papers_declared_in_the_script_are_all_present() -> None:

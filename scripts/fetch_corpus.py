@@ -7,7 +7,16 @@ structured, so navigation, references, captions and author blocks can be dropped
 precisely with the stdlib parser and no extra dependency. Writes body text only,
 without a title header, because the importer passes title and content
 separately. Existing files are skipped unless --force; sources.json records each
-paper's arXiv id, version and size so the corpus can be reproduced and audited.
+paper's arXiv id, version, size and licence so the corpus can be reproduced and
+audited.
+
+The licence is recorded because the extraction removes it. arXiv prints it in the
+page chrome above the body marker, so the parser drops it by design -- correctly,
+since it is not paper content -- and the corpus files therefore carry no
+attribution at all. Reading it back from the abstract page and writing it into the
+manifest is what keeps the record complete; without it, the one fact needed to
+decide whether these files may be redistributed would be the one fact the pipeline
+discards.
 """
 
 import argparse
@@ -33,16 +42,52 @@ class Paper:
     title: str
 
 
-# Chosen to span the techniques this project builds on while staying clearly
-# distinguishable: evaluation questions need an unambiguous expected source, and
-# overlapping papers would make "which of these does the passage come from"
+# Two groups, serving opposite purposes.
+#
+# The first five are the papers the evaluation questions are written against. They have to
+# stay clearly distinguishable from each other: a question needs one unambiguous expected
+# source, and overlapping papers would make "which of these does the passage come from"
 # unanswerable.
+#
+# The other fifteen are distractors, and are deliberately not distinguishable from the
+# first five -- they cover the same ground (efficient attention, dense retrieval, encoder
+# pretraining, sentence embeddings) precisely so that they compete for the same queries.
+# A corpus holding only the target papers flatters retrieval: with those five documents and
+# top_k=5, a ranking drawn at random finds the expected source about 0.68 of the time, so a
+# perfect hit rate means almost nothing. With all twenty the same figure is 0.188, which is
+# what lets the hit rate be read at all. No question is written against a distractor, so
+# these only have to be plausible.
+#
+# Dropped while selecting, and why: Reformer (2000.04487) has no HTML rendering; ANCE
+# (2010.02625) extracts to under 10,000 characters, below the floor that marks a broken
+# body boundary; SPLADE v2 (2109.10086) is CC BY-NC-SA, and a non-commercial restriction is
+# one nothing else in the corpus carries; GPT-3 and CLIP are three to four times the length
+# of everything else and further from the rest topically.
 PAPERS: list[Paper] = [
     Paper("1706.03762", "attention-is-all-you-need", "Attention Is All You Need"),
     Paper("1810.04805", "bert", "BERT: Pre-training of Deep Bidirectional Transformers"),
     Paper("2005.11401", "retrieval-augmented-generation", "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"),
     Paper("2004.04906", "dense-passage-retrieval", "Dense Passage Retrieval for Open-Domain Question Answering"),
     Paper("1908.10084", "sentence-bert", "Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks"),
+    # Efficient and long-sequence attention.
+    Paper("2004.05150", "longformer", "Longformer: The Long-Document Transformer"),
+    Paper("2007.14062", "big-bird", "Big Bird: Transformers for Longer Sequences"),
+    Paper("2205.14135", "flash-attention", "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"),
+    # Dense retrieval and retrieval-augmented generation.
+    Paper("2004.12832", "colbert", "ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT"),
+    Paper("2002.08909", "realm", "REALM: Retrieval-Augmented Language Model Pre-Training"),
+    Paper("2007.01282", "fusion-in-decoder", "Leveraging Passage Retrieval with Generative Models for Open Domain Question Answering"),
+    Paper("2010.08191", "rocketqa", "RocketQA: An Optimized Training Approach to Dense Passage Retrieval for Open-Domain Question Answering"),
+    Paper("2112.09118", "unsupervised-dense-retrieval", "Unsupervised Dense Information Retrieval with Contrastive Learning"),
+    # Encoder pretraining.
+    Paper("1910.01108", "distilbert", "DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter"),
+    Paper("1909.11942", "albert", "ALBERT: A Lite BERT for Self-supervised Learning of Language Representations"),
+    Paper("2003.10555", "electra", "ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators"),
+    Paper("1907.11692", "roberta", "RoBERTa: A Robustly Optimized BERT Pretraining Approach"),
+    # Sentence embeddings and adaptation.
+    Paper("2104.08821", "simcse", "SimCSE: Simple Contrastive Learning of Sentence Embeddings"),
+    Paper("2106.09685", "lora", "LoRA: Low-Rank Adaptation of Large Language Models"),
+    Paper("1910.10683", "t5", "Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer"),
 ]
 
 
@@ -362,9 +407,35 @@ _WATERMARK = re.compile(r'<div id="watermark-tr">\s*([^<]+?)\s*</div>')
 MIN_PLAUSIBLE_CHARS = 10_000
 
 
+# The licence link on the abstract page, matched on its href rather than on its link text
+# or its surrounding element, because arXiv renders the two kinds differently:
+#
+#   non-exclusive: <div class="abs-license"><a href="http://arxiv.org/licenses/..." >view license</a></div>
+#   Creative Commons: <div class="abs-license"><a href="http://creativecommons.org/..." >
+#                     <img .../> <span>view license</span></a></div>
+#
+# The CC form wraps the text in an <img> and a <span>, so a pattern expecting "view license"
+# to be the link's immediate content matches the non-exclusive licence and silently misses
+# both CC licences. That is the worst possible way round: the papers it drops are the ones
+# whose terms are strictest, and an empty value cannot be told from a licence that was never
+# read. Matching the href describes the thing actually wanted -- a URL that is a licence URL.
+#
+# The footer's "Copyright" link does not match: it points at info.arxiv.org/help/license/,
+# and the pattern requires the arxiv.org/licenses/ path that the licence itself lives at.
+_LICENSE = re.compile(
+    r'href="([^"]*(?:arxiv\.org/licenses/|creativecommons\.org/licenses/)[^"]*)"'
+)
+
+
 def extract_version(html: str) -> str:
     """Return the version watermark, or an empty string if the page has none."""
     match = _WATERMARK.search(html)
+    return match.group(1) if match else ""
+
+
+def extract_license(html: str) -> str:
+    """Return the licence URL from an arXiv abstract page, or "" if there is no link."""
+    match = _LICENSE.search(html)
     return match.group(1) if match else ""
 
 
@@ -396,6 +467,27 @@ def fetch_paper(client: httpx.Client, paper: Paper) -> tuple[str, str, str]:
     return text, extract_version(response.text), url
 
 
+def fetch_license(client: httpx.Client, paper: Paper) -> str:
+    """Read one paper's licence URL from its abstract page, or "" if it cannot be read.
+
+    A second request to a different path: the body is on /html/ and the licence only on
+    /abs/. Never raises. The manifest is a record, and a paper whose licence could not be
+    read is still worth fetching and still worth having in the corpus; losing the whole
+    paper over a metadata request would trade a usable corpus for a complete manifest.
+
+    The empty string is the one case where the file cannot speak for itself: it means the
+    request failed or the page carried no link, and never that the paper has no licence.
+    Every arXiv paper has one, so an empty value here says the record is incomplete rather
+    than that there is nothing to record.
+    """
+    try:
+        response = client.get(f"https://arxiv.org/abs/{paper.arxiv_id}")
+        response.raise_for_status()
+    except httpx.HTTPError:
+        return ""
+    return extract_license(response.text)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Fetch corpus paper full text from arXiv")
     parser.add_argument(
@@ -423,7 +515,19 @@ def main() -> int:
             path = CORPUS_DIR / f"{paper.slug}.txt"
 
             if path.exists() and not args.force:
-                entry = _source_entry(paper, path, previous.get(paper.slug, {}).get("version", ""))
+                remembered = previous.get(paper.slug, {})
+                # Backfilled rather than only inherited. The licence was added to the
+                # manifest after these files were first fetched, so inheriting alone would
+                # record every already-present paper as unlicensed -- permanently, since
+                # the empty value never looks like it needs filling. One metadata request
+                # per missing entry, and the .txt files are still never rewritten.
+                license_url = remembered.get("license_url") or fetch_license(client, paper)
+                entry = _source_entry(
+                    paper,
+                    path,
+                    remembered.get("version", ""),
+                    license_url,
+                )
                 print(f"  skipped  {paper.slug:32} already present ({entry['characters']:,} characters)")
                 sources.append(entry)
                 continue
@@ -435,10 +539,12 @@ def main() -> int:
                 failures += 1
                 continue
 
+            license_url = fetch_license(client, paper)
+
             # Explicit UTF-8: the text is full of non-ASCII (Greek letters, dashes,
             # curly quotes) that the Windows default codec would reject on write.
             path.write_text(text, encoding="utf-8")
-            entry = _source_entry(paper, path, version)
+            entry = _source_entry(paper, path, version, license_url)
             print(f"  done  {paper.slug:32} {len(text):>7,} characters  {version}")
             sources.append(entry)
 
@@ -449,7 +555,9 @@ def main() -> int:
         "note": (
             "Body text comes from arXiv's official HTML version. References, author blocks, page "
             "navigation, figure captions and tables were removed; formulas keep their LaTeX source "
-            "(lightly cleaned up) rather than being rendered as math."
+            "(lightly cleaned up) rather than being rendered as math. Each paper's licence is "
+            "recorded in license_url, read from its abstract page: the extraction drops the "
+            "licence notice from the body, so this field is the corpus's only attribution record."
         ),
         "papers": sources,
     }
@@ -483,13 +591,14 @@ def _load_previous_entries(manifest_path: Path) -> dict[str, dict]:
         return {}
 
 
-def _source_entry(paper: Paper, path: Path, version: str) -> dict:
+def _source_entry(paper: Paper, path: Path, version: str, license_url: str) -> dict:
     return {
         "slug": paper.slug,
         "arxiv_id": paper.arxiv_id,
         "title": paper.title,
         "url": f"https://arxiv.org/abs/{paper.arxiv_id}",
         "version": version,
+        "license_url": license_url,
         "file": path.name,
         "characters": len(path.read_text(encoding="utf-8")),
     }
