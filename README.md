@@ -90,9 +90,11 @@ has already been produced.
 
 You need **PostgreSQL 16 with the pgvector extension**, and **Python 3.11+**.
 
-This project does not use Docker. It was developed against a single conda environment that
-holds both Python and PostgreSQL, which is why the database commands below go through
-`scripts/db.py` rather than `docker compose`.
+PostgreSQL comes from Docker Compose — `docker compose up -d postgres` starts the database
+and nothing else, because the API runs on the host as a plain Python process.
+`scripts/db.py`, a small wrapper around the `pg_ctl` and `psql` binaries, is still there as
+a **local-only fallback** for machines without Docker; the two paths are alternatives, not
+steps of one setup.
 
 ```bash
 git clone https://github.com/zaughterCoding/AI-Paper-QA.git
@@ -107,6 +109,10 @@ solve.
 conda create -n paperqa python=3.11 postgresql=16 pgvector -c conda-forge
 conda activate paperqa
 ```
+
+Only Python is used by the Docker path — `postgresql` and `pgvector` are there for the
+fallback. Installing all three anyway is deliberate: one environment then covers both
+paths, and that is the combination this README was verified against.
 
 **2. Install torch as a CPU-only build, before anything else.** `sentence-transformers`
 depends on torch, and a plain install on Windows resolves the CUDA build — about 2.5 GB for
@@ -137,8 +143,53 @@ Note this is a shell variable, not a `.env` entry — see Common Errors.
 
 ## Start the Database
 
-`scripts/db.py` wraps PostgreSQL's own tools, which have to be the ones installed next to
-the interpreter you run it with:
+### Recommended: Docker Compose
+
+`docker-compose.yml` starts **PostgreSQL 16 with pgvector**. It starts the database only —
+the API is not containerised (see [Why the API is not in a container](#why-the-api-is-not-in-a-container)).
+The credentials match `DATABASE_URL` in `.env.example`, so there is nothing to configure.
+
+```bash
+docker compose up -d postgres
+```
+
+`up -d` returns as soon as the container is created, which is well before PostgreSQL
+accepts connections. The compose file defines a health check, so wait for it rather than
+guessing:
+
+```bash
+docker compose ps        # STATUS reads "healthy" when it is ready
+```
+
+The rest of the lifecycle:
+
+```bash
+docker compose logs -f postgres                          # watch it
+docker compose exec postgres psql -U postgres -d paperqa # a psql shell
+docker compose down                                      # stop it; your data survives
+docker compose down -v                                   # stop it and delete the data
+```
+
+Data lives in a **named volume** (`paperqa-pgdata`), not a host directory, so nothing in
+this repository points at a path on your machine and `git clean` cannot reach your
+database. `down` removes the container and keeps the volume; only `down -v` discards it.
+
+### Then create the tables
+
+```bash
+python -m alembic upgrade head
+```
+
+`python -m alembic` rather than a bare `alembic`, so the command does not depend on the
+environment's `Scripts` directory being on your `PATH`. The database URL comes from `.env`,
+not from `alembic.ini`, so there is one place to change it. The migration also runs
+`CREATE EXTENSION IF NOT EXISTS vector`, so pgvector needs no separate step.
+
+### Fallback: a local PostgreSQL (`scripts/db.py`)
+
+If Docker is not available, the same database can be run directly from the conda
+environment created above. `scripts/db.py` wraps PostgreSQL's own binaries, and locates
+them from the interpreter you run it with — so it has to be *that* interpreter.
 
 ```bash
 python scripts/db.py init        # create the data directory (once)
@@ -157,15 +208,18 @@ export PAPERQA_PGDATA=/path/to/pgdata     # PowerShell: $env:PAPERQA_PGDATA='D:\
 python scripts/db.py init
 ```
 
-Then create the tables:
+This path is **local-only**: it is not covered by the compose file, and it is the reason
+those two conda packages are installed. It also binds the same port, so the two paths
+cannot run at the same time — stop one before starting the other
+(`docker compose down`, or `python scripts/db.py stop`).
 
-```bash
-python -m alembic upgrade head
-```
+### Why the API is not in a container
 
-`python -m alembic` rather than a bare `alembic`, so the command does not depend on the
-environment's `Scripts` directory being on your `PATH`. The database URL comes from `.env`,
-not from `alembic.ini`, so there is one place to change it.
+There is deliberately no `Dockerfile`. The API is a plain Python process: `uvicorn
+app.main:app` with a real terminal gives you the traceback and the debugger, and code
+changes need no rebuild. Packaging it would add a build step, an image to keep in sync
+with `pyproject.toml`, and a file-mount layer between you and the source — for a service
+whose entire runtime dependency is PostgreSQL.
 
 ## Run the API
 
@@ -202,13 +256,23 @@ tell success from "stored but never embedded".
 
 ### Or load the evaluation corpus
 
-The corpus is downloaded rather than committed. `eval/corpus/sources.json` is the manifest
-(titles, arXiv URLs and licences); `scripts/fetch_corpus.py` reads it and writes the paper
-text into `eval/corpus/`.
+**The paper texts are not distributed with this repository.** They are downloaded on your
+machine instead. What *is* committed is the manifest — `eval/corpus/sources.json`, holding
+each paper's title, arXiv URL and licence — and the evaluation set `eval/questions.jsonl`
+that refers to it. `sources.json` is also the corpus's only attribution record: the
+extractor strips copyright notices by design, so the individual `.txt` files carry no
+attribution of their own.
+
+`eval/corpus/*.txt` is listed in `.gitignore`, so the papers cannot be committed by
+accident. **Downloading them locally is the intended workflow — do not add them back to
+git.** Fetch them from the manifest:
 
 ```bash
 python scripts/fetch_corpus.py          # add --force to re-download existing files
 ```
+
+This is the only step that needs network access. Running it twice is safe: files already
+on disk are skipped, so a second run reports every paper as `skipped`.
 
 Then load it through the API, which exercises the real path — routing, dependency
 injection and the real embedding model — rather than calling the service directly:
@@ -324,11 +388,12 @@ app/
   repositories/   SQL per table
   services/       ingestion, indexing, retrieval, answering
 alembic/          migrations
+docker-compose.yml PostgreSQL 16 + pgvector, database only
 eval/
   questions.jsonl the evaluation set (committed)
-  corpus/         sources.json (committed) + the papers (downloaded)
+  corpus/         sources.json (committed) + the papers (downloaded, gitignored)
 scripts/
-  db.py           local PostgreSQL lifecycle
+  db.py           local PostgreSQL lifecycle — fallback when Docker is unavailable
   fetch_corpus.py download the corpus from arXiv
   load_corpus.py  import it through the HTTP API
   index_pending.py backfill missing embeddings
@@ -340,12 +405,16 @@ tests/
 
 | What you see | What it means | Fix |
 |---|---|---|
-| `POST /documents` returns `500 Internal Server Error`, body is plain text | The database is not reachable. The real error (`sqlalchemy.exc.OperationalError`) is only in the server log, never in the response | `python scripts/db.py status`, then `python scripts/db.py start` |
+| `docker compose up` fails with `cannot connect to the Docker daemon` | Docker Desktop is installed but not running | Start Docker Desktop and wait for it to report it is running |
+| `docker compose up -d postgres` fails with `Ports are not available: ... 0.0.0.0:5432` | Something already holds port 5432 — usually the `scripts/db.py` fallback, which binds the same port | `python scripts/db.py stop`, or point one of them at another port |
+| `alembic upgrade head` fails with a connection error right after `docker compose up -d` | `up -d` returns before PostgreSQL is accepting connections | `docker compose ps` until STATUS reads `healthy`, then retry |
+| `docker compose down -v` | Not an error — a warning: **`-v` deletes the volume and your whole database.** Plain `docker compose down` keeps it | Use `down` unless you mean to start over |
+| `POST /documents` returns `500 Internal Server Error`, body is plain text | The database is not reachable. The real error (`sqlalchemy.exc.OperationalError`) is only in the server log, never in the response | `docker compose ps` if you use Docker, otherwise `python scripts/db.py status` |
 | `/health` returns `{"status":"ok"}` but everything else fails | Expected — `/health` never touches the database | Check the database with `db.py status` |
 | `{"detail":"llm_api_key must be set (see .env.example)"}`, HTTP 422 | `LLM_API_KEY` is empty or missing from `.env` | Set it in `.env`, then restart the API |
 | HTTP 502, `the model endpoint failed: Client error '401 Unauthorized'` | The key is set but rejected by the provider. The key itself is never included in the message | Check the key, and that `LLM_BASE_URL` matches the provider |
-| `pg_ctl.exe not found (...)` from `scripts/db.py` | You ran it with the wrong Python. PostgreSQL's binaries are located from `sys.executable` | Use the environment's interpreter: `python scripts/db.py ...` after `conda activate paperqa` |
-| `Data directory not initialized` | `db.py init` has not run for that `PAPERQA_PGDATA` | `python scripts/db.py init` |
+| `pg_ctl.exe not found (...)` from `scripts/db.py` (fallback path only) | You ran it with the wrong Python. PostgreSQL's binaries are located from `sys.executable` | Use the environment's interpreter: `python scripts/db.py ...` after `conda activate paperqa` |
+| `Data directory not initialized` (fallback path only) | `db.py init` has not run for that `PAPERQA_PGDATA` | `python scripts/db.py init` |
 | The model downloads again on every run, or lands on `C:` | `HF_HOME` set inside `.env` has no effect — settings are declared `extra="ignore"`, so it is dropped before HuggingFace ever reads the process environment | Export it in your shell instead: `export HF_HOME=...` |
 | `Configuration file contains invalid cp936 characters`, or alembic crashes reading `alembic.ini` | On a Chinese-locale Windows machine those config files are read with the system codec | Keep `.condarc`, `pip.ini` and `alembic.ini` ASCII-only. Python source files are unaffected |
 | Tests error with `PermissionError` on a `pytest-of-...` temporary directory | A shared machine-level temp directory pytest cannot scan makes every `tmp_path` test fail before it starts | Handled in `tests/conftest.py`, which moves the temp root inside the project. If you see it, that file did not run |
