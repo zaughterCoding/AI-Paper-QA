@@ -409,6 +409,12 @@ that is the intended behaviour, and `python scripts/fetch_corpus.py` is the fix.
 
 ## Run Evaluation
 
+**For new improvements, use the [frozen evidence benchmark](eval/benchmark/README.md).**
+It contains 120 questions over the same 20-paper corpus, stable original-text
+evidence annotations, development/test splits, answerability confusion matrices
+and comparable v0.1.0 baseline runs. Papers remain local and Git-ignored. The
+35-question evaluation below is retained for historical reproduction.
+
 `scripts/evaluate.py` runs every question in `eval/questions.jsonl` through retrieval and
 prints one JSON object to stdout. Progress goes to stderr, so the output stays pipeable.
 

@@ -1,0 +1,4074 @@
+{
+  "metadata": {
+    "benchmark_version": "paperqa-evidence-v1",
+    "benchmark_sha256": "a672f7fa8d22ca2b8050b7b8c31cfdb006dfa5b5322527edc6c45d8eee9347dc",
+    "corpus_sha256": "27b43daa4f7ef09692976d286af56d5855b374b3f481693d51d8f72738d9f0e7",
+    "system_commit": "5bcc07487d822df9edfe0f7f6b326af19acf1890",
+    "pipeline_sha256": "7cc5540cfcddd93048c4606746e020967a7c3345e0406aef7ad762a3528b3af8",
+    "runner_sha256": "c4f5cf77f940b2eb15e0348b7acb44b784a4ef08ddb0cbb2b8057e5a6a0baf9c",
+    "scorer_sha256": "9772c28a6f115c5524c3c310077c9767bbd56d5ff0c0ea7c6f5b70555049c6aa",
+    "system_name": "dense-pgvector-v0.1.0",
+    "mode": "retrieval_only",
+    "app_matches_baseline": true,
+    "embedding_model": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+    "model_weights_sha256": "72fa4c1e63f204abd6e836344888ed5a4259d33f0fe48f272eb86febf776105a",
+    "model_max_seq_length": 512,
+    "model_tokenizer_sha256": "5e7245596b76f5be39d612babeceb40d409602d50ca759645966ccdb4a2caa30",
+    "stored_vector_max_abs_error": 1.1455267667770386e-07,
+    "vectors_verified": true,
+    "chunk_size_words": 180,
+    "chunk_overlap_words": 30,
+    "chunk_count": 731,
+    "split": "test",
+    "k": 5,
+    "max_context_words": 900,
+    "timestamp_utc": "2026-09-26T19:35:35.214324+00:00",
+    "python": "3.11.16",
+    "platform": "Windows-10-10.0.22621-SP0",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "postgresql": "16.15",
+    "dependencies": {
+      "torch": "2.14.0+cpu",
+      "sentence-transformers": "6.1.0",
+      "transformers": "5.17.0",
+      "pgvector": "0.5.0"
+    },
+    "latency_scope": "single warm run; embedding + database retrieval; excludes model loading, scoring and generation",
+    "answerability_note": "No answer/abstain decisions: confusion matrix deliberately unavailable, not zero."
+  },
+  "predictions": [
+    {
+      "id": "paperqa-002",
+      "contexts": [
+        {
+          "source_id": "longformer",
+          "start": 19199,
+          "end": 20341,
+          "score": 0.43548974779309424
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 27886,
+          "end": 29175,
+          "score": 0.4156557321548462
+        },
+        {
+          "source_id": "t5",
+          "start": 32179,
+          "end": 33310,
+          "score": 0.39766362919428244
+        },
+        {
+          "source_id": "longformer",
+          "start": 5529,
+          "end": 6753,
+          "score": 0.3963081358763022
+        },
+        {
+          "source_id": "attention-is-all-you-need",
+          "start": 17130,
+          "end": 18284,
+          "score": 0.3926236927509308
+        }
+      ],
+      "latency_ms": 11.44079997902736
+    },
+    {
+      "id": "paperqa-004",
+      "contexts": [
+        {
+          "source_id": "colbert",
+          "start": 10659,
+          "end": 11816,
+          "score": 0.5884234133832653
+        },
+        {
+          "source_id": "bert",
+          "start": 0,
+          "end": 1314,
+          "score": 0.5875491745740677
+        },
+        {
+          "source_id": "roberta",
+          "start": 18751,
+          "end": 19990,
+          "score": 0.5805701517379103
+        },
+        {
+          "source_id": "bert",
+          "start": 29525,
+          "end": 30589,
+          "score": 0.560405340170543
+        },
+        {
+          "source_id": "roberta",
+          "start": 2026,
+          "end": 3182,
+          "score": 0.5578175450672193
+        }
+      ],
+      "latency_ms": 10.237400012556463
+    },
+    {
+      "id": "paperqa-005",
+      "contexts": [
+        {
+          "source_id": "albert",
+          "start": 9221,
+          "end": 10394,
+          "score": 0.6100749242216482
+        },
+        {
+          "source_id": "roberta",
+          "start": 18751,
+          "end": 19990,
+          "score": 0.6091901296859913
+        },
+        {
+          "source_id": "albert",
+          "start": 3153,
+          "end": 4398,
+          "score": 0.590720986766875
+        },
+        {
+          "source_id": "t5",
+          "start": 30086,
+          "end": 31285,
+          "score": 0.5900569558143616
+        },
+        {
+          "source_id": "roberta",
+          "start": 6002,
+          "end": 7114,
+          "score": 0.5884438753128052
+        }
+      ],
+      "latency_ms": 10.040999972261488
+    },
+    {
+      "id": "paperqa-006",
+      "contexts": [
+        {
+          "source_id": "roberta",
+          "start": 3986,
+          "end": 5181,
+          "score": 0.6803828680629396
+        },
+        {
+          "source_id": "bert",
+          "start": 29525,
+          "end": 30589,
+          "score": 0.6702542304992676
+        },
+        {
+          "source_id": "roberta",
+          "start": 12862,
+          "end": 14056,
+          "score": 0.6555516719818115
+        },
+        {
+          "source_id": "bert",
+          "start": 0,
+          "end": 1314,
+          "score": 0.6465842723846436
+        },
+        {
+          "source_id": "roberta",
+          "start": 2992,
+          "end": 4196,
+          "score": 0.6460080146789551
+        }
+      ],
+      "latency_ms": 11.607499967794865
+    },
+    {
+      "id": "paperqa-007",
+      "contexts": [
+        {
+          "source_id": "sentence-bert",
+          "start": 11133,
+          "end": 12309,
+          "score": 0.7124488353729248
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 13158,
+          "end": 14302,
+          "score": 0.7032403945922852
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 5092,
+          "end": 6310,
+          "score": 0.6919393951856742
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 0,
+          "end": 1304,
+          "score": 0.6783981514931839
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 2137,
+          "end": 3288,
+          "score": 0.6559390630758378
+        }
+      ],
+      "latency_ms": 17.49800000106916
+    },
+    {
+      "id": "paperqa-009",
+      "contexts": [
+        {
+          "source_id": "sentence-bert",
+          "start": 16016,
+          "end": 17167,
+          "score": 0.7425995622515953
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 13158,
+          "end": 14302,
+          "score": 0.6419863318213038
+        },
+        {
+          "source_id": "simcse",
+          "start": 19511,
+          "end": 20718,
+          "score": 0.6150868168421508
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 5092,
+          "end": 6310,
+          "score": 0.582595467567448
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 6130,
+          "end": 7400,
+          "score": 0.5776809109639589
+        }
+      ],
+      "latency_ms": 18.006999976933002
+    },
+    {
+      "id": "paperqa-014",
+      "contexts": [
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 18430,
+          "end": 19583,
+          "score": 0.5697714346783589
+        },
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 21358,
+          "end": 22511,
+          "score": 0.5670381784439127
+        },
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 23317,
+          "end": 24380,
+          "score": 0.5373323283989635
+        },
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 24186,
+          "end": 25429,
+          "score": 0.4916765391826665
+        },
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 22303,
+          "end": 23511,
+          "score": 0.4431471492735841
+        }
+      ],
+      "latency_ms": 11.767600022722036
+    },
+    {
+      "id": "paperqa-015",
+      "contexts": [
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 19422,
+          "end": 20580,
+          "score": 0.5949020563036819
+        },
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 17409,
+          "end": 18640,
+          "score": 0.5560567047562189
+        },
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 6454,
+          "end": 7658,
+          "score": 0.5471409289324847
+        },
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 24186,
+          "end": 25429,
+          "score": 0.543559638049625
+        },
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 21358,
+          "end": 22511,
+          "score": 0.5412348186233757
+        }
+      ],
+      "latency_ms": 10.892300051636994
+    },
+    {
+      "id": "paperqa-016",
+      "contexts": [
+        {
+          "source_id": "longformer",
+          "start": 24103,
+          "end": 25284,
+          "score": 0.6346771717071533
+        },
+        {
+          "source_id": "longformer",
+          "start": 7578,
+          "end": 8788,
+          "score": 0.6326861381530762
+        },
+        {
+          "source_id": "longformer",
+          "start": 3343,
+          "end": 4646,
+          "score": 0.6159937152858814
+        },
+        {
+          "source_id": "longformer",
+          "start": 0,
+          "end": 1375,
+          "score": 0.6004019617794786
+        },
+        {
+          "source_id": "longformer",
+          "start": 23095,
+          "end": 24323,
+          "score": 0.5867427587509155
+        }
+      ],
+      "latency_ms": 11.912600020878017
+    },
+    {
+      "id": "paperqa-017",
+      "contexts": [
+        {
+          "source_id": "roberta",
+          "start": 3986,
+          "end": 5181,
+          "score": 0.6528345735570534
+        },
+        {
+          "source_id": "longformer",
+          "start": 2262,
+          "end": 3534,
+          "score": 0.6359933804271636
+        },
+        {
+          "source_id": "roberta",
+          "start": 2992,
+          "end": 4196,
+          "score": 0.6232557482497619
+        },
+        {
+          "source_id": "longformer",
+          "start": 23095,
+          "end": 24323,
+          "score": 0.5995005547851492
+        },
+        {
+          "source_id": "longformer",
+          "start": 19199,
+          "end": 20341,
+          "score": 0.5847213690065953
+        }
+      ],
+      "latency_ms": 10.580400004982948
+    },
+    {
+      "id": "paperqa-018",
+      "contexts": [
+        {
+          "source_id": "longformer",
+          "start": 19199,
+          "end": 20341,
+          "score": 0.5743102088981753
+        },
+        {
+          "source_id": "longformer",
+          "start": 3343,
+          "end": 4646,
+          "score": 0.5684219937576062
+        },
+        {
+          "source_id": "longformer",
+          "start": 0,
+          "end": 1375,
+          "score": 0.5628523491112988
+        },
+        {
+          "source_id": "longformer",
+          "start": 21159,
+          "end": 22278,
+          "score": 0.5481518507003784
+        },
+        {
+          "source_id": "longformer",
+          "start": 7578,
+          "end": 8788,
+          "score": 0.5216829776763916
+        }
+      ],
+      "latency_ms": 14.8561000241898
+    },
+    {
+      "id": "paperqa-019",
+      "contexts": [
+        {
+          "source_id": "big-bird",
+          "start": 14571,
+          "end": 15717,
+          "score": 0.5776286628688976
+        },
+        {
+          "source_id": "big-bird",
+          "start": 12727,
+          "end": 13829,
+          "score": 0.5664054076188316
+        },
+        {
+          "source_id": "big-bird",
+          "start": 33050,
+          "end": 34294,
+          "score": 0.5594200754511321
+        },
+        {
+          "source_id": "longformer",
+          "start": 8586,
+          "end": 9867,
+          "score": 0.525558277202898
+        },
+        {
+          "source_id": "big-bird",
+          "start": 10833,
+          "end": 11960,
+          "score": 0.5194568610838817
+        }
+      ],
+      "latency_ms": 14.969900017604232
+    },
+    {
+      "id": "paperqa-020",
+      "contexts": [
+        {
+          "source_id": "longformer",
+          "start": 32209,
+          "end": 33517,
+          "score": 0.6155776243713393
+        },
+        {
+          "source_id": "big-bird",
+          "start": 5017,
+          "end": 6157,
+          "score": 0.6038514488009019
+        },
+        {
+          "source_id": "big-bird",
+          "start": 24080,
+          "end": 25303,
+          "score": 0.5924676193354821
+        },
+        {
+          "source_id": "big-bird",
+          "start": 33050,
+          "end": 34294,
+          "score": 0.5640681309618834
+        },
+        {
+          "source_id": "big-bird",
+          "start": 0,
+          "end": 1180,
+          "score": 0.5431590897156445
+        }
+      ],
+      "latency_ms": 10.378999984823167
+    },
+    {
+      "id": "paperqa-021",
+      "contexts": [
+        {
+          "source_id": "big-bird",
+          "start": 33050,
+          "end": 34294,
+          "score": 0.7372263669967651
+        },
+        {
+          "source_id": "big-bird",
+          "start": 14571,
+          "end": 15717,
+          "score": 0.7269061370547941
+        },
+        {
+          "source_id": "big-bird",
+          "start": 5017,
+          "end": 6157,
+          "score": 0.6856702157455566
+        },
+        {
+          "source_id": "longformer",
+          "start": 8586,
+          "end": 9867,
+          "score": 0.6684392293822539
+        },
+        {
+          "source_id": "big-bird",
+          "start": 34100,
+          "end": 34794,
+          "score": 0.6628861233131785
+        }
+      ],
+      "latency_ms": 10.133899981155992
+    },
+    {
+      "id": "paperqa-022",
+      "contexts": [
+        {
+          "source_id": "flash-attention",
+          "start": 0,
+          "end": 1260,
+          "score": 0.6277114596710849
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 3135,
+          "end": 4338,
+          "score": 0.603306853574107
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 5109,
+          "end": 6335,
+          "score": 0.5934591535652198
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 19765,
+          "end": 21051,
+          "score": 0.5851536640433284
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 4138,
+          "end": 5276,
+          "score": 0.5832951913300053
+        }
+      ],
+      "latency_ms": 12.651900004129857
+    },
+    {
+      "id": "paperqa-024",
+      "contexts": [
+        {
+          "source_id": "flash-attention",
+          "start": 0,
+          "end": 1260,
+          "score": 0.6965500478088799
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 5109,
+          "end": 6335,
+          "score": 0.6594484651417467
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 6095,
+          "end": 7412,
+          "score": 0.6272620629199642
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 19765,
+          "end": 21051,
+          "score": 0.6001368999399613
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 18795,
+          "end": 19961,
+          "score": 0.5831479927124986
+        }
+      ],
+      "latency_ms": 10.529600025620311
+    },
+    {
+      "id": "paperqa-026",
+      "contexts": [
+        {
+          "source_id": "colbert",
+          "start": 37135,
+          "end": 38272,
+          "score": 0.704037207124401
+        },
+        {
+          "source_id": "colbert",
+          "start": 36137,
+          "end": 37326,
+          "score": 0.6677605707788139
+        },
+        {
+          "source_id": "colbert",
+          "start": 35127,
+          "end": 36351,
+          "score": 0.6594688702262794
+        },
+        {
+          "source_id": "colbert",
+          "start": 7631,
+          "end": 8810,
+          "score": 0.6322055897467626
+        },
+        {
+          "source_id": "colbert",
+          "start": 45983,
+          "end": 47238,
+          "score": 0.628314994077982
+        }
+      ],
+      "latency_ms": 18.29360000556335
+    },
+    {
+      "id": "paperqa-029",
+      "contexts": [
+        {
+          "source_id": "realm",
+          "start": 26278,
+          "end": 27425,
+          "score": 0.50875386543549
+        },
+        {
+          "source_id": "realm",
+          "start": 25307,
+          "end": 26443,
+          "score": 0.5039787292480504
+        },
+        {
+          "source_id": "realm",
+          "start": 0,
+          "end": 1273,
+          "score": 0.4437388282289224
+        },
+        {
+          "source_id": "realm",
+          "start": 28199,
+          "end": 29342,
+          "score": 0.43386093176240215
+        },
+        {
+          "source_id": "realm",
+          "start": 4121,
+          "end": 5304,
+          "score": 0.43042275724275436
+        }
+      ],
+      "latency_ms": 12.003300013020635
+    },
+    {
+      "id": "paperqa-039",
+      "contexts": [
+        {
+          "source_id": "unsupervised-dense-retrieval",
+          "start": 16087,
+          "end": 17211,
+          "score": 0.5286401633644017
+        },
+        {
+          "source_id": "unsupervised-dense-retrieval",
+          "start": 15111,
+          "end": 16277,
+          "score": 0.41329459587617523
+        },
+        {
+          "source_id": "big-bird",
+          "start": 9910,
+          "end": 11001,
+          "score": 0.34199677878627976
+        },
+        {
+          "source_id": "unsupervised-dense-retrieval",
+          "start": 35493,
+          "end": 36633,
+          "score": 0.3301493623897245
+        },
+        {
+          "source_id": "unsupervised-dense-retrieval",
+          "start": 38349,
+          "end": 38642,
+          "score": 0.32967193932318994
+        }
+      ],
+      "latency_ms": 17.578899976797402
+    },
+    {
+      "id": "paperqa-040",
+      "contexts": [
+        {
+          "source_id": "distilbert",
+          "start": 0,
+          "end": 1272,
+          "score": 0.5645792484283447
+        },
+        {
+          "source_id": "distilbert",
+          "start": 6069,
+          "end": 7256,
+          "score": 0.549337354341904
+        },
+        {
+          "source_id": "distilbert",
+          "start": 9862,
+          "end": 11146,
+          "score": 0.5281333923339844
+        },
+        {
+          "source_id": "distilbert",
+          "start": 5126,
+          "end": 6274,
+          "score": 0.5062086876506404
+        },
+        {
+          "source_id": "distilbert",
+          "start": 7992,
+          "end": 9113,
+          "score": 0.5054313835244555
+        }
+      ],
+      "latency_ms": 9.807599999476224
+    },
+    {
+      "id": "paperqa-041",
+      "contexts": [
+        {
+          "source_id": "distilbert",
+          "start": 0,
+          "end": 1272,
+          "score": 0.6052905917167664
+        },
+        {
+          "source_id": "distilbert",
+          "start": 11985,
+          "end": 12539,
+          "score": 0.6032643554649152
+        },
+        {
+          "source_id": "distilbert",
+          "start": 6069,
+          "end": 7256,
+          "score": 0.5870590456092937
+        },
+        {
+          "source_id": "distilbert",
+          "start": 7045,
+          "end": 8198,
+          "score": 0.5736215114593506
+        },
+        {
+          "source_id": "distilbert",
+          "start": 8952,
+          "end": 10104,
+          "score": 0.5335278193040012
+        }
+      ],
+      "latency_ms": 14.299299975391477
+    },
+    {
+      "id": "paperqa-042",
+      "contexts": [
+        {
+          "source_id": "distilbert",
+          "start": 6069,
+          "end": 7256,
+          "score": 0.6452693554598489
+        },
+        {
+          "source_id": "distilbert",
+          "start": 8952,
+          "end": 10104,
+          "score": 0.6148310533266643
+        },
+        {
+          "source_id": "distilbert",
+          "start": 0,
+          "end": 1272,
+          "score": 0.6122919321060181
+        },
+        {
+          "source_id": "distilbert",
+          "start": 5126,
+          "end": 6274,
+          "score": 0.6080256934150651
+        },
+        {
+          "source_id": "distilbert",
+          "start": 7992,
+          "end": 9113,
+          "score": 0.6056435343239596
+        }
+      ],
+      "latency_ms": 16.117800027132034
+    },
+    {
+      "id": "paperqa-043",
+      "contexts": [
+        {
+          "source_id": "albert",
+          "start": 15091,
+          "end": 16315,
+          "score": 0.5901786753375589
+        },
+        {
+          "source_id": "albert",
+          "start": 3153,
+          "end": 4398,
+          "score": 0.50075446075986
+        },
+        {
+          "source_id": "albert",
+          "start": 22814,
+          "end": 23956,
+          "score": 0.4559987647533803
+        },
+        {
+          "source_id": "albert",
+          "start": 0,
+          "end": 1306,
+          "score": 0.4347947667477957
+        },
+        {
+          "source_id": "albert",
+          "start": 26689,
+          "end": 27896,
+          "score": 0.42202814620482076
+        }
+      ],
+      "latency_ms": 14.756200020201504
+    },
+    {
+      "id": "paperqa-044",
+      "contexts": [
+        {
+          "source_id": "albert",
+          "start": 23764,
+          "end": 24908,
+          "score": 0.7647852897644043
+        },
+        {
+          "source_id": "albert",
+          "start": 18898,
+          "end": 20095,
+          "score": 0.747520953712355
+        },
+        {
+          "source_id": "albert",
+          "start": 19896,
+          "end": 21126,
+          "score": 0.7406166791915894
+        },
+        {
+          "source_id": "albert",
+          "start": 3153,
+          "end": 4398,
+          "score": 0.7301172453234951
+        },
+        {
+          "source_id": "albert",
+          "start": 22814,
+          "end": 23956,
+          "score": 0.7078237707719952
+        }
+      ],
+      "latency_ms": 15.02800005255267
+    },
+    {
+      "id": "paperqa-045",
+      "contexts": [
+        {
+          "source_id": "albert",
+          "start": 11105,
+          "end": 12309,
+          "score": 0.5263352394104004
+        },
+        {
+          "source_id": "albert",
+          "start": 16094,
+          "end": 17262,
+          "score": 0.5212619019306849
+        },
+        {
+          "source_id": "albert",
+          "start": 20890,
+          "end": 22021,
+          "score": 0.5090581330376309
+        },
+        {
+          "source_id": "albert",
+          "start": 19896,
+          "end": 21126,
+          "score": 0.4899744391441345
+        },
+        {
+          "source_id": "albert",
+          "start": 15091,
+          "end": 16315,
+          "score": 0.48933464415852845
+        }
+      ],
+      "latency_ms": 10.32990001840517
+    },
+    {
+      "id": "paperqa-046",
+      "contexts": [
+        {
+          "source_id": "electra",
+          "start": 20879,
+          "end": 21939,
+          "score": 0.5640413424944087
+        },
+        {
+          "source_id": "electra",
+          "start": 0,
+          "end": 1194,
+          "score": 0.5611617826723
+        },
+        {
+          "source_id": "t5",
+          "start": 34096,
+          "end": 35249,
+          "score": 0.5127618297622407
+        },
+        {
+          "source_id": "realm",
+          "start": 6226,
+          "end": 7309,
+          "score": 0.5055816468249779
+        },
+        {
+          "source_id": "electra",
+          "start": 21744,
+          "end": 22850,
+          "score": 0.47235909433852497
+        }
+      ],
+      "latency_ms": 17.298799997661263
+    },
+    {
+      "id": "paperqa-048",
+      "contexts": [
+        {
+          "source_id": "electra",
+          "start": 20879,
+          "end": 21939,
+          "score": 0.708741307258606
+        },
+        {
+          "source_id": "electra",
+          "start": 0,
+          "end": 1194,
+          "score": 0.7028857469558716
+        },
+        {
+          "source_id": "electra",
+          "start": 19767,
+          "end": 21069,
+          "score": 0.6576662063598633
+        },
+        {
+          "source_id": "electra",
+          "start": 24522,
+          "end": 25780,
+          "score": 0.6551343202590942
+        },
+        {
+          "source_id": "electra",
+          "start": 3945,
+          "end": 5152,
+          "score": 0.6548938751220703
+        }
+      ],
+      "latency_ms": 15.06500004325062
+    },
+    {
+      "id": "paperqa-049",
+      "contexts": [
+        {
+          "source_id": "roberta",
+          "start": 19790,
+          "end": 20997,
+          "score": 0.7111315939167621
+        },
+        {
+          "source_id": "bert",
+          "start": 3314,
+          "end": 4596,
+          "score": 0.6308011412620544
+        },
+        {
+          "source_id": "roberta",
+          "start": 3986,
+          "end": 5181,
+          "score": 0.6098948898880153
+        },
+        {
+          "source_id": "albert",
+          "start": 8275,
+          "end": 9401,
+          "score": 0.5995271087256583
+        },
+        {
+          "source_id": "roberta",
+          "start": 24629,
+          "end": 25829,
+          "score": 0.5989377380683777
+        }
+      ],
+      "latency_ms": 11.171000020112842
+    },
+    {
+      "id": "paperqa-050",
+      "contexts": [
+        {
+          "source_id": "roberta",
+          "start": 27520,
+          "end": 28677,
+          "score": 0.5435171127319336
+        },
+        {
+          "source_id": "roberta",
+          "start": 24629,
+          "end": 25829,
+          "score": 0.5132926686653331
+        },
+        {
+          "source_id": "roberta",
+          "start": 7887,
+          "end": 9034,
+          "score": 0.4683130979537964
+        },
+        {
+          "source_id": "distilbert",
+          "start": 7045,
+          "end": 8198,
+          "score": 0.45588448643684387
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 12108,
+          "end": 13346,
+          "score": 0.44489250243991907
+        }
+      ],
+      "latency_ms": 14.5584000274539
+    },
+    {
+      "id": "paperqa-052",
+      "contexts": [
+        {
+          "source_id": "simcse",
+          "start": 3242,
+          "end": 4555,
+          "score": 0.6142095557326354
+        },
+        {
+          "source_id": "simcse",
+          "start": 14492,
+          "end": 15664,
+          "score": 0.546225396023668
+        },
+        {
+          "source_id": "simcse",
+          "start": 22547,
+          "end": 23715,
+          "score": 0.5443137831313869
+        },
+        {
+          "source_id": "simcse",
+          "start": 15475,
+          "end": 16746,
+          "score": 0.5210285161699634
+        },
+        {
+          "source_id": "simcse",
+          "start": 5415,
+          "end": 6746,
+          "score": 0.5068235691294936
+        }
+      ],
+      "latency_ms": 13.894999981857836
+    },
+    {
+      "id": "paperqa-053",
+      "contexts": [
+        {
+          "source_id": "simcse",
+          "start": 21503,
+          "end": 22746,
+          "score": 0.6844897866249084
+        },
+        {
+          "source_id": "simcse",
+          "start": 20507,
+          "end": 21744,
+          "score": 0.511841893196106
+        },
+        {
+          "source_id": "unsupervised-dense-retrieval",
+          "start": 36454,
+          "end": 37518,
+          "score": 0.4967828392982483
+        },
+        {
+          "source_id": "simcse",
+          "start": 19511,
+          "end": 20718,
+          "score": 0.4900096654891968
+        },
+        {
+          "source_id": "bert",
+          "start": 18327,
+          "end": 19493,
+          "score": 0.48937936095533874
+        }
+      ],
+      "latency_ms": 16.278800030704588
+    },
+    {
+      "id": "paperqa-054",
+      "contexts": [
+        {
+          "source_id": "simcse",
+          "start": 9560,
+          "end": 10689,
+          "score": 0.4456743066699139
+        },
+        {
+          "source_id": "albert",
+          "start": 24697,
+          "end": 25883,
+          "score": 0.4120237336130459
+        },
+        {
+          "source_id": "simcse",
+          "start": 25646,
+          "end": 26942,
+          "score": 0.39655313512366275
+        },
+        {
+          "source_id": "simcse",
+          "start": 11478,
+          "end": 12778,
+          "score": 0.3442692849475577
+        },
+        {
+          "source_id": "simcse",
+          "start": 2219,
+          "end": 3456,
+          "score": 0.3379122808084154
+        }
+      ],
+      "latency_ms": 13.126800011377782
+    },
+    {
+      "id": "paperqa-055",
+      "contexts": [
+        {
+          "source_id": "lora",
+          "start": 3113,
+          "end": 4192,
+          "score": 0.4406646954815199
+        },
+        {
+          "source_id": "lora",
+          "start": 0,
+          "end": 1263,
+          "score": 0.432092938894455
+        },
+        {
+          "source_id": "lora",
+          "start": 10810,
+          "end": 11848,
+          "score": 0.3697826421519945
+        },
+        {
+          "source_id": "lora",
+          "start": 9824,
+          "end": 10985,
+          "score": 0.3694454619453724
+        },
+        {
+          "source_id": "lora",
+          "start": 25956,
+          "end": 27178,
+          "score": 0.3562079839458485
+        }
+      ],
+      "latency_ms": 11.974799970630556
+    },
+    {
+      "id": "paperqa-056",
+      "contexts": [
+        {
+          "source_id": "lora",
+          "start": 2099,
+          "end": 3309,
+          "score": 0.7079761202349604
+        },
+        {
+          "source_id": "lora",
+          "start": 14472,
+          "end": 15478,
+          "score": 0.6700958806219184
+        },
+        {
+          "source_id": "lora",
+          "start": 0,
+          "end": 1263,
+          "score": 0.6491786241531372
+        },
+        {
+          "source_id": "lora",
+          "start": 1049,
+          "end": 2320,
+          "score": 0.622395955181364
+        },
+        {
+          "source_id": "lora",
+          "start": 15303,
+          "end": 16391,
+          "score": 0.6180044412612915
+        }
+      ],
+      "latency_ms": 12.53579999320209
+    },
+    {
+      "id": "paperqa-057",
+      "contexts": [
+        {
+          "source_id": "lora",
+          "start": 1049,
+          "end": 2320,
+          "score": 0.7145086867202893
+        },
+        {
+          "source_id": "lora",
+          "start": 11658,
+          "end": 12780,
+          "score": 0.6762619807564043
+        },
+        {
+          "source_id": "lora",
+          "start": 15303,
+          "end": 16391,
+          "score": 0.6283785922301666
+        },
+        {
+          "source_id": "lora",
+          "start": 14472,
+          "end": 15478,
+          "score": 0.6196752047925943
+        },
+        {
+          "source_id": "lora",
+          "start": 0,
+          "end": 1263,
+          "score": 0.5979656220695017
+        }
+      ],
+      "latency_ms": 14.057699998375028
+    },
+    {
+      "id": "paperqa-058",
+      "contexts": [
+        {
+          "source_id": "t5",
+          "start": 105457,
+          "end": 106674,
+          "score": 0.5844966347365571
+        },
+        {
+          "source_id": "realm",
+          "start": 23365,
+          "end": 24576,
+          "score": 0.512588381767273
+        },
+        {
+          "source_id": "t5",
+          "start": 44304,
+          "end": 45412,
+          "score": 0.5104081630706787
+        },
+        {
+          "source_id": "t5",
+          "start": 22518,
+          "end": 23601,
+          "score": 0.4991578757762909
+        },
+        {
+          "source_id": "t5",
+          "start": 20643,
+          "end": 21753,
+          "score": 0.4792577934707535
+        }
+      ],
+      "latency_ms": 12.131700001191348
+    },
+    {
+      "id": "paperqa-060",
+      "contexts": [
+        {
+          "source_id": "t5",
+          "start": 60311,
+          "end": 61438,
+          "score": 0.5910532962020324
+        },
+        {
+          "source_id": "t5",
+          "start": 58439,
+          "end": 59611,
+          "score": 0.5561096932822659
+        },
+        {
+          "source_id": "t5",
+          "start": 61268,
+          "end": 62404,
+          "score": 0.5479291081428528
+        },
+        {
+          "source_id": "t5",
+          "start": 57550,
+          "end": 58658,
+          "score": 0.5441969633102417
+        },
+        {
+          "source_id": "t5",
+          "start": 59441,
+          "end": 60490,
+          "score": 0.5269096179658411
+        }
+      ],
+      "latency_ms": 11.468500015325844
+    },
+    {
+      "id": "paperqa-062",
+      "contexts": [
+        {
+          "source_id": "bert",
+          "start": 0,
+          "end": 1314,
+          "score": 0.7115884595162607
+        },
+        {
+          "source_id": "roberta",
+          "start": 3986,
+          "end": 5181,
+          "score": 0.7008635788898622
+        },
+        {
+          "source_id": "bert",
+          "start": 29525,
+          "end": 30589,
+          "score": 0.6897720879452188
+        },
+        {
+          "source_id": "bert",
+          "start": 3314,
+          "end": 4596,
+          "score": 0.6781772566928127
+        },
+        {
+          "source_id": "roberta",
+          "start": 18751,
+          "end": 19990,
+          "score": 0.6735814006827592
+        }
+      ],
+      "latency_ms": 12.482199992518872
+    },
+    {
+      "id": "paperqa-063",
+      "contexts": [
+        {
+          "source_id": "sentence-bert",
+          "start": 5092,
+          "end": 6310,
+          "score": 0.7634530977550862
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 0,
+          "end": 1304,
+          "score": 0.7284348011016898
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 6130,
+          "end": 7400,
+          "score": 0.7190718483371658
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 11133,
+          "end": 12309,
+          "score": 0.694141310104211
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 13158,
+          "end": 14302,
+          "score": 0.6826092411642827
+        }
+      ],
+      "latency_ms": 16.222700010985136
+    },
+    {
+      "id": "paperqa-065",
+      "contexts": [
+        {
+          "source_id": "longformer",
+          "start": 3343,
+          "end": 4646,
+          "score": 0.6921088695526172
+        },
+        {
+          "source_id": "longformer",
+          "start": 0,
+          "end": 1375,
+          "score": 0.6656827133080109
+        },
+        {
+          "source_id": "longformer",
+          "start": 7578,
+          "end": 8788,
+          "score": 0.665609320067805
+        },
+        {
+          "source_id": "longformer",
+          "start": 19199,
+          "end": 20341,
+          "score": 0.6567821911833058
+        },
+        {
+          "source_id": "longformer",
+          "start": 2262,
+          "end": 3534,
+          "score": 0.6084835762689377
+        }
+      ],
+      "latency_ms": 12.474599992856383
+    },
+    {
+      "id": "paperqa-069",
+      "contexts": [
+        {
+          "source_id": "distilbert",
+          "start": 6069,
+          "end": 7256,
+          "score": 0.6967313082000252
+        },
+        {
+          "source_id": "distilbert",
+          "start": 0,
+          "end": 1272,
+          "score": 0.6888457741989429
+        },
+        {
+          "source_id": "distilbert",
+          "start": 5126,
+          "end": 6274,
+          "score": 0.6598535579486647
+        },
+        {
+          "source_id": "distilbert",
+          "start": 7992,
+          "end": 9113,
+          "score": 0.6463936374666228
+        },
+        {
+          "source_id": "distilbert",
+          "start": 8952,
+          "end": 10104,
+          "score": 0.6209954434336614
+        }
+      ],
+      "latency_ms": 13.240500004030764
+    },
+    {
+      "id": "paperqa-070",
+      "contexts": [
+        {
+          "source_id": "t5",
+          "start": 58439,
+          "end": 59611,
+          "score": 0.536036487098159
+        },
+        {
+          "source_id": "t5",
+          "start": 57550,
+          "end": 58658,
+          "score": 0.5103434616122575
+        },
+        {
+          "source_id": "t5",
+          "start": 61268,
+          "end": 62404,
+          "score": 0.5009023844657916
+        },
+        {
+          "source_id": "t5",
+          "start": 105457,
+          "end": 106674,
+          "score": 0.48429979430735925
+        },
+        {
+          "source_id": "t5",
+          "start": 60311,
+          "end": 61438,
+          "score": 0.4820797475433809
+        }
+      ],
+      "latency_ms": 15.1909000123851
+    },
+    {
+      "id": "paperqa-071",
+      "contexts": [
+        {
+          "source_id": "longformer",
+          "start": 32209,
+          "end": 33517,
+          "score": 0.5759014740048971
+        },
+        {
+          "source_id": "big-bird",
+          "start": 12727,
+          "end": 13829,
+          "score": 0.5502324640473766
+        },
+        {
+          "source_id": "longformer",
+          "start": 28071,
+          "end": 29349,
+          "score": 0.5437322206816411
+        },
+        {
+          "source_id": "big-bird",
+          "start": 5017,
+          "end": 6157,
+          "score": 0.5408793043042058
+        },
+        {
+          "source_id": "big-bird",
+          "start": 33050,
+          "end": 34294,
+          "score": 0.5312547367063332
+        }
+      ],
+      "latency_ms": 17.033199954312295
+    },
+    {
+      "id": "paperqa-072",
+      "contexts": [
+        {
+          "source_id": "electra",
+          "start": 23603,
+          "end": 24749,
+          "score": 0.6811381768501904
+        },
+        {
+          "source_id": "electra",
+          "start": 24522,
+          "end": 25780,
+          "score": 0.6464641900977987
+        },
+        {
+          "source_id": "electra",
+          "start": 16797,
+          "end": 18014,
+          "score": 0.6364716724787148
+        },
+        {
+          "source_id": "electra",
+          "start": 2964,
+          "end": 4149,
+          "score": 0.6351836162586669
+        },
+        {
+          "source_id": "colbert",
+          "start": 10659,
+          "end": 11816,
+          "score": 0.6303945591928222
+        }
+      ],
+      "latency_ms": 13.095500005874783
+    },
+    {
+      "id": "paperqa-073",
+      "contexts": [
+        {
+          "source_id": "distilbert",
+          "start": 8952,
+          "end": 10104,
+          "score": 0.4970186954107242
+        },
+        {
+          "source_id": "albert",
+          "start": 19896,
+          "end": 21126,
+          "score": 0.4703713690791915
+        },
+        {
+          "source_id": "distilbert",
+          "start": 7045,
+          "end": 8198,
+          "score": 0.46672022739408026
+        },
+        {
+          "source_id": "albert",
+          "start": 23764,
+          "end": 24908,
+          "score": 0.46246195286966263
+        },
+        {
+          "source_id": "distilbert",
+          "start": 7992,
+          "end": 9113,
+          "score": 0.45982388380338923
+        }
+      ],
+      "latency_ms": 9.80070000514388
+    },
+    {
+      "id": "paperqa-075",
+      "contexts": [
+        {
+          "source_id": "sentence-bert",
+          "start": 14100,
+          "end": 15240,
+          "score": 0.4893312004009249
+        },
+        {
+          "source_id": "simcse",
+          "start": 10508,
+          "end": 11671,
+          "score": 0.48304010877132764
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 8244,
+          "end": 9452,
+          "score": 0.4714116139061221
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 15065,
+          "end": 16210,
+          "score": 0.46181081121596157
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 20887,
+          "end": 22137,
+          "score": 0.44722531578616276
+        }
+      ],
+      "latency_ms": 12.733599985949695
+    },
+    {
+      "id": "paperqa-078",
+      "contexts": [
+        {
+          "source_id": "lora",
+          "start": 20176,
+          "end": 21231,
+          "score": 0.5634925961494446
+        },
+        {
+          "source_id": "lora",
+          "start": 15303,
+          "end": 16391,
+          "score": 0.512055516242981
+        },
+        {
+          "source_id": "lora",
+          "start": 1049,
+          "end": 2320,
+          "score": 0.4838515231697852
+        },
+        {
+          "source_id": "lora",
+          "start": 27872,
+          "end": 28908,
+          "score": 0.48072534799575806
+        },
+        {
+          "source_id": "lora",
+          "start": 21050,
+          "end": 22073,
+          "score": 0.476213814245832
+        }
+      ],
+      "latency_ms": 14.876400004141033
+    },
+    {
+      "id": "paperqa-079",
+      "contexts": [
+        {
+          "source_id": "flash-attention",
+          "start": 6095,
+          "end": 7412,
+          "score": 0.63454151728007
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 18795,
+          "end": 19961,
+          "score": 0.5982764246134252
+        },
+        {
+          "source_id": "big-bird",
+          "start": 5017,
+          "end": 6157,
+          "score": 0.5907505046426649
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 20825,
+          "end": 22031,
+          "score": 0.5679375786818527
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 22865,
+          "end": 24075,
+          "score": 0.5676187196232415
+        }
+      ],
+      "latency_ms": 18.37619999423623
+    },
+    {
+      "id": "paperqa-081",
+      "contexts": [
+        {
+          "source_id": "attention-is-all-you-need",
+          "start": 22905,
+          "end": 24124,
+          "score": 0.5884007811546326
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 1049,
+          "end": 2346,
+          "score": 0.5829508900642395
+        },
+        {
+          "source_id": "attention-is-all-you-need",
+          "start": 1011,
+          "end": 2316,
+          "score": 0.5808313738804247
+        },
+        {
+          "source_id": "attention-is-all-you-need",
+          "start": 18101,
+          "end": 19261,
+          "score": 0.5476958751678467
+        },
+        {
+          "source_id": "t5",
+          "start": 73751,
+          "end": 74935,
+          "score": 0.5268806219100952
+        }
+      ],
+      "latency_ms": 15.379499993287027
+    },
+    {
+      "id": "paperqa-082",
+      "contexts": [
+        {
+          "source_id": "roberta",
+          "start": 3986,
+          "end": 5181,
+          "score": 0.697459360881429
+        },
+        {
+          "source_id": "bert",
+          "start": 3314,
+          "end": 4596,
+          "score": 0.6920758485794067
+        },
+        {
+          "source_id": "bert",
+          "start": 10738,
+          "end": 11842,
+          "score": 0.6725484523119435
+        },
+        {
+          "source_id": "t5",
+          "start": 42469,
+          "end": 43560,
+          "score": 0.6720147132873535
+        },
+        {
+          "source_id": "electra",
+          "start": 1005,
+          "end": 2190,
+          "score": 0.6677068868032876
+        }
+      ],
+      "latency_ms": 12.234599969815463
+    },
+    {
+      "id": "paperqa-084",
+      "contexts": [
+        {
+          "source_id": "longformer",
+          "start": 21159,
+          "end": 22278,
+          "score": 0.575429524455696
+        },
+        {
+          "source_id": "longformer",
+          "start": 22045,
+          "end": 23288,
+          "score": 0.5350073257084305
+        },
+        {
+          "source_id": "longformer",
+          "start": 3343,
+          "end": 4646,
+          "score": 0.5151703953743018
+        },
+        {
+          "source_id": "longformer",
+          "start": 19199,
+          "end": 20341,
+          "score": 0.5119649157565933
+        },
+        {
+          "source_id": "longformer",
+          "start": 7578,
+          "end": 8788,
+          "score": 0.499256432100748
+        }
+      ],
+      "latency_ms": 14.449000009335577
+    },
+    {
+      "id": "paperqa-085",
+      "contexts": [
+        {
+          "source_id": "flash-attention",
+          "start": 0,
+          "end": 1260,
+          "score": 0.7622656651260273
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 5109,
+          "end": 6335,
+          "score": 0.6856080668439835
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 25783,
+          "end": 27045,
+          "score": 0.6692287124122771
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 26844,
+          "end": 28090,
+          "score": 0.6556223054607572
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 3135,
+          "end": 4338,
+          "score": 0.6554953866606537
+        }
+      ],
+      "latency_ms": 15.411300002597272
+    },
+    {
+      "id": "paperqa-087",
+      "contexts": [
+        {
+          "source_id": "distilbert",
+          "start": 6069,
+          "end": 7256,
+          "score": 0.7242795125938346
+        },
+        {
+          "source_id": "distilbert",
+          "start": 0,
+          "end": 1272,
+          "score": 0.7206467723075474
+        },
+        {
+          "source_id": "distilbert",
+          "start": 5126,
+          "end": 6274,
+          "score": 0.718851020541606
+        },
+        {
+          "source_id": "distilbert",
+          "start": 11985,
+          "end": 12539,
+          "score": 0.7090243025378653
+        },
+        {
+          "source_id": "distilbert",
+          "start": 7992,
+          "end": 9113,
+          "score": 0.6470676099537128
+        }
+      ],
+      "latency_ms": 16.22220000717789
+    },
+    {
+      "id": "paperqa-088",
+      "contexts": [
+        {
+          "source_id": "simcse",
+          "start": 9560,
+          "end": 10689,
+          "score": 0.5314034186120726
+        },
+        {
+          "source_id": "simcse",
+          "start": 25646,
+          "end": 26942,
+          "score": 0.48070171590437283
+        },
+        {
+          "source_id": "simcse",
+          "start": 2219,
+          "end": 3456,
+          "score": 0.454280262675254
+        },
+        {
+          "source_id": "attention-is-all-you-need",
+          "start": 21872,
+          "end": 23086,
+          "score": 0.44739964917900354
+        },
+        {
+          "source_id": "simcse",
+          "start": 8665,
+          "end": 9764,
+          "score": 0.4337151686122921
+        }
+      ],
+      "latency_ms": 11.79949997458607
+    },
+    {
+      "id": "paperqa-089",
+      "contexts": [
+        {
+          "source_id": "lora",
+          "start": 11658,
+          "end": 12780,
+          "score": 0.7254722118377686
+        },
+        {
+          "source_id": "lora",
+          "start": 1049,
+          "end": 2320,
+          "score": 0.7060979779900338
+        },
+        {
+          "source_id": "lora",
+          "start": 0,
+          "end": 1263,
+          "score": 0.672265887260437
+        },
+        {
+          "source_id": "lora",
+          "start": 33270,
+          "end": 34508,
+          "score": 0.663196325302124
+        },
+        {
+          "source_id": "lora",
+          "start": 28698,
+          "end": 29833,
+          "score": 0.648689708191771
+        }
+      ],
+      "latency_ms": 13.591399998404086
+    },
+    {
+      "id": "paperqa-090",
+      "contexts": [
+        {
+          "source_id": "colbert",
+          "start": 19613,
+          "end": 20837,
+          "score": 0.4501586690592372
+        },
+        {
+          "source_id": "bert",
+          "start": 10738,
+          "end": 11842,
+          "score": 0.39856977479818445
+        },
+        {
+          "source_id": "colbert",
+          "start": 16737,
+          "end": 17893,
+          "score": 0.39775073528289795
+        },
+        {
+          "source_id": "t5",
+          "start": 57550,
+          "end": 58658,
+          "score": 0.3943049907684326
+        },
+        {
+          "source_id": "electra",
+          "start": 1005,
+          "end": 2190,
+          "score": 0.3897773754862127
+        }
+      ],
+      "latency_ms": 11.414100008551031
+    },
+    {
+      "id": "paperqa-091",
+      "contexts": [
+        {
+          "source_id": "lora",
+          "start": 0,
+          "end": 1263,
+          "score": 0.5634451080395316
+        },
+        {
+          "source_id": "lora",
+          "start": 20176,
+          "end": 21231,
+          "score": 0.5524772570275446
+        },
+        {
+          "source_id": "lora",
+          "start": 27872,
+          "end": 28908,
+          "score": 0.5458207889145851
+        },
+        {
+          "source_id": "lora",
+          "start": 28698,
+          "end": 29833,
+          "score": 0.5363076765445589
+        },
+        {
+          "source_id": "lora",
+          "start": 34312,
+          "end": 34947,
+          "score": 0.5159696186790005
+        }
+      ],
+      "latency_ms": 17.42649998050183
+    },
+    {
+      "id": "paperqa-092",
+      "contexts": [
+        {
+          "source_id": "flash-attention",
+          "start": 21842,
+          "end": 23074,
+          "score": 0.45935758706078533
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 20825,
+          "end": 22031,
+          "score": 0.4410540759563446
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 25783,
+          "end": 27045,
+          "score": 0.4166114330291748
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 0,
+          "end": 1260,
+          "score": 0.4036902246659868
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 22865,
+          "end": 24075,
+          "score": 0.401006346881012
+        }
+      ],
+      "latency_ms": 14.765200030524284
+    },
+    {
+      "id": "paperqa-093",
+      "contexts": [
+        {
+          "source_id": "roberta",
+          "start": 12862,
+          "end": 14056,
+          "score": 0.6037534115461473
+        },
+        {
+          "source_id": "roberta",
+          "start": 2026,
+          "end": 3182,
+          "score": 0.5946883800811552
+        },
+        {
+          "source_id": "roberta",
+          "start": 6002,
+          "end": 7114,
+          "score": 0.552338209608901
+        },
+        {
+          "source_id": "roberta",
+          "start": 2992,
+          "end": 4196,
+          "score": 0.5496087938780321
+        },
+        {
+          "source_id": "unsupervised-dense-retrieval",
+          "start": 36454,
+          "end": 37518,
+          "score": 0.5332667509754458
+        }
+      ],
+      "latency_ms": 18.030699982773513
+    },
+    {
+      "id": "paperqa-094",
+      "contexts": [
+        {
+          "source_id": "rocketqa",
+          "start": 1123,
+          "end": 2470,
+          "score": 0.5729751754447514
+        },
+        {
+          "source_id": "realm",
+          "start": 24391,
+          "end": 25510,
+          "score": 0.4869186901595559
+        },
+        {
+          "source_id": "dense-passage-retrieval",
+          "start": 29801,
+          "end": 30992,
+          "score": 0.4832451959556142
+        },
+        {
+          "source_id": "realm",
+          "start": 22383,
+          "end": 23567,
+          "score": 0.4756363092335918
+        },
+        {
+          "source_id": "rocketqa",
+          "start": 21026,
+          "end": 22200,
+          "score": 0.46831089824839345
+        }
+      ],
+      "latency_ms": 10.417399986181408
+    },
+    {
+      "id": "paperqa-096",
+      "contexts": [
+        {
+          "source_id": "unsupervised-dense-retrieval",
+          "start": 7156,
+          "end": 8391,
+          "score": 0.46697411137973677
+        },
+        {
+          "source_id": "rocketqa",
+          "start": 23022,
+          "end": 24106,
+          "score": 0.4545630541704273
+        },
+        {
+          "source_id": "colbert",
+          "start": 41083,
+          "end": 42302,
+          "score": 0.4471530083235492
+        },
+        {
+          "source_id": "colbert",
+          "start": 32333,
+          "end": 33436,
+          "score": 0.4450399079847509
+        },
+        {
+          "source_id": "colbert",
+          "start": 38089,
+          "end": 39197,
+          "score": 0.4437231156991064
+        }
+      ],
+      "latency_ms": 14.645899995230138
+    },
+    {
+      "id": "paperqa-098",
+      "contexts": [
+        {
+          "source_id": "rocketqa",
+          "start": 21026,
+          "end": 22200,
+          "score": 0.3829543362287089
+        },
+        {
+          "source_id": "attention-is-all-you-need",
+          "start": 17130,
+          "end": 18284,
+          "score": 0.3710586726665497
+        },
+        {
+          "source_id": "colbert",
+          "start": 47044,
+          "end": 47559,
+          "score": 0.36605584621429443
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 30049,
+          "end": 31108,
+          "score": 0.36345571279525757
+        },
+        {
+          "source_id": "lora",
+          "start": 22925,
+          "end": 24120,
+          "score": 0.3463132083415985
+        }
+      ],
+      "latency_ms": 11.359800002537668
+    },
+    {
+      "id": "paperqa-100",
+      "contexts": [
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 11542,
+          "end": 12740,
+          "score": 0.34888865504000766
+        },
+        {
+          "source_id": "colbert",
+          "start": 2281,
+          "end": 3682,
+          "score": 0.3417298691949301
+        },
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 12534,
+          "end": 13665,
+          "score": 0.3223123050425145
+        },
+        {
+          "source_id": "colbert",
+          "start": 15699,
+          "end": 16948,
+          "score": 0.32134421702193694
+        },
+        {
+          "source_id": "dense-passage-retrieval",
+          "start": 13574,
+          "end": 14750,
+          "score": 0.31251590512645655
+        }
+      ],
+      "latency_ms": 10.042999987490475
+    },
+    {
+      "id": "paperqa-102",
+      "contexts": [
+        {
+          "source_id": "sentence-bert",
+          "start": 3070,
+          "end": 4319,
+          "score": 0.6327678780098045
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 8244,
+          "end": 9452,
+          "score": 0.6122410114931783
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 24981,
+          "end": 26184,
+          "score": 0.5936941746655608
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 0,
+          "end": 1304,
+          "score": 0.5935720689806856
+        },
+        {
+          "source_id": "sentence-bert",
+          "start": 10141,
+          "end": 11349,
+          "score": 0.57566615488135
+        }
+      ],
+      "latency_ms": 9.86890000058338
+    },
+    {
+      "id": "paperqa-104",
+      "contexts": [
+        {
+          "source_id": "longformer",
+          "start": 23095,
+          "end": 24323,
+          "score": 0.5512082844252426
+        },
+        {
+          "source_id": "longformer",
+          "start": 21159,
+          "end": 22278,
+          "score": 0.5473778517617085
+        },
+        {
+          "source_id": "big-bird",
+          "start": 27069,
+          "end": 28227,
+          "score": 0.5284632129393102
+        },
+        {
+          "source_id": "longformer",
+          "start": 29115,
+          "end": 30452,
+          "score": 0.5135825260183184
+        },
+        {
+          "source_id": "longformer",
+          "start": 22045,
+          "end": 23288,
+          "score": 0.50288006646156
+        }
+      ],
+      "latency_ms": 11.779599997680634
+    },
+    {
+      "id": "paperqa-106",
+      "contexts": [
+        {
+          "source_id": "unsupervised-dense-retrieval",
+          "start": 25685,
+          "end": 26806,
+          "score": 0.4276969177903589
+        },
+        {
+          "source_id": "unsupervised-dense-retrieval",
+          "start": 38349,
+          "end": 38642,
+          "score": 0.42500633448324665
+        },
+        {
+          "source_id": "rocketqa",
+          "start": 25817,
+          "end": 27028,
+          "score": 0.4064114037997375
+        },
+        {
+          "source_id": "big-bird",
+          "start": 10833,
+          "end": 11960,
+          "score": 0.4038586375797615
+        },
+        {
+          "source_id": "dense-passage-retrieval",
+          "start": 19313,
+          "end": 20427,
+          "score": 0.40371936559677124
+        }
+      ],
+      "latency_ms": 16.261000011581928
+    },
+    {
+      "id": "paperqa-107",
+      "contexts": [
+        {
+          "source_id": "attention-is-all-you-need",
+          "start": 20016,
+          "end": 21143,
+          "score": 0.37296870350837974
+        },
+        {
+          "source_id": "attention-is-all-you-need",
+          "start": 19057,
+          "end": 20194,
+          "score": 0.35473831239482023
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 24856,
+          "end": 25989,
+          "score": 0.3455637579484274
+        },
+        {
+          "source_id": "bert",
+          "start": 8777,
+          "end": 9956,
+          "score": 0.3416645025214855
+        },
+        {
+          "source_id": "lora",
+          "start": 13553,
+          "end": 14622,
+          "score": 0.3379674747028978
+        }
+      ],
+      "latency_ms": 30.65750002861023
+    },
+    {
+      "id": "paperqa-108",
+      "contexts": [
+        {
+          "source_id": "roberta",
+          "start": 6002,
+          "end": 7114,
+          "score": 0.4665409028530121
+        },
+        {
+          "source_id": "bert",
+          "start": 17397,
+          "end": 18512,
+          "score": 0.4258403778076172
+        },
+        {
+          "source_id": "roberta",
+          "start": 10895,
+          "end": 12117,
+          "score": 0.4094336926937103
+        },
+        {
+          "source_id": "roberta",
+          "start": 6931,
+          "end": 8072,
+          "score": 0.3860844075679779
+        },
+        {
+          "source_id": "colbert",
+          "start": 31371,
+          "end": 32536,
+          "score": 0.3811346959391424
+        }
+      ],
+      "latency_ms": 10.292600025422871
+    },
+    {
+      "id": "paperqa-109",
+      "contexts": [
+        {
+          "source_id": "dense-passage-retrieval",
+          "start": 23221,
+          "end": 24374,
+          "score": 0.44402841067144894
+        },
+        {
+          "source_id": "dense-passage-retrieval",
+          "start": 31840,
+          "end": 33048,
+          "score": 0.4361145794391632
+        },
+        {
+          "source_id": "dense-passage-retrieval",
+          "start": 27914,
+          "end": 29070,
+          "score": 0.3829763899459613
+        },
+        {
+          "source_id": "dense-passage-retrieval",
+          "start": 32856,
+          "end": 33811,
+          "score": 0.38163554668426514
+        },
+        {
+          "source_id": "dense-passage-retrieval",
+          "start": 29801,
+          "end": 30992,
+          "score": 0.36125850677490234
+        }
+      ],
+      "latency_ms": 11.29419996868819
+    },
+    {
+      "id": "paperqa-110",
+      "contexts": [
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 18430,
+          "end": 19583,
+          "score": 0.43058449857420045
+        },
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 24186,
+          "end": 25429,
+          "score": 0.39140853933045106
+        },
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 21358,
+          "end": 22511,
+          "score": 0.39119724087731667
+        },
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 29340,
+          "end": 30464,
+          "score": 0.3841372361264972
+        },
+        {
+          "source_id": "retrieval-augmented-generation",
+          "start": 17409,
+          "end": 18640,
+          "score": 0.3674881835288899
+        }
+      ],
+      "latency_ms": 10.188000043854117
+    },
+    {
+      "id": "paperqa-112",
+      "contexts": [
+        {
+          "source_id": "flash-attention",
+          "start": 7206,
+          "end": 8437,
+          "score": 0.49408057332039235
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 20825,
+          "end": 22031,
+          "score": 0.45588496064454165
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 25783,
+          "end": 27045,
+          "score": 0.4455779162393767
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 8241,
+          "end": 9420,
+          "score": 0.42608881826002776
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 21842,
+          "end": 23074,
+          "score": 0.4240246622591808
+        }
+      ],
+      "latency_ms": 9.037100011482835
+    },
+    {
+      "id": "paperqa-115",
+      "contexts": [
+        {
+          "source_id": "longformer",
+          "start": 18319,
+          "end": 19369,
+          "score": 0.3573585705712019
+        },
+        {
+          "source_id": "bert",
+          "start": 8777,
+          "end": 9956,
+          "score": 0.31242425367687676
+        },
+        {
+          "source_id": "albert",
+          "start": 3153,
+          "end": 4398,
+          "score": 0.3036886751651786
+        },
+        {
+          "source_id": "t5",
+          "start": 115477,
+          "end": 116663,
+          "score": 0.3000552892619026
+        },
+        {
+          "source_id": "albert",
+          "start": 21835,
+          "end": 23027,
+          "score": 0.2948854634370577
+        }
+      ],
+      "latency_ms": 10.718800011090934
+    },
+    {
+      "id": "paperqa-116",
+      "contexts": [
+        {
+          "source_id": "t5",
+          "start": 122983,
+          "end": 124043,
+          "score": 0.2074695454592329
+        },
+        {
+          "source_id": "colbert",
+          "start": 32333,
+          "end": 33436,
+          "score": 0.19901157641134826
+        },
+        {
+          "source_id": "rocketqa",
+          "start": 13401,
+          "end": 14485,
+          "score": 0.19211418126652602
+        },
+        {
+          "source_id": "t5",
+          "start": 123861,
+          "end": 124998,
+          "score": 0.1872774437335214
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 28967,
+          "end": 30312,
+          "score": 0.1777705146211107
+        }
+      ],
+      "latency_ms": 13.888000044971704
+    },
+    {
+      "id": "paperqa-117",
+      "contexts": [
+        {
+          "source_id": "lora",
+          "start": 34312,
+          "end": 34947,
+          "score": 0.22325623035431064
+        },
+        {
+          "source_id": "t5",
+          "start": 137913,
+          "end": 138187,
+          "score": 0.20684438686635453
+        },
+        {
+          "source_id": "t5",
+          "start": 136949,
+          "end": 138078,
+          "score": 0.20307403523171197
+        },
+        {
+          "source_id": "lora",
+          "start": 33270,
+          "end": 34508,
+          "score": 0.18192553114447219
+        },
+        {
+          "source_id": "t5",
+          "start": 36935,
+          "end": 38041,
+          "score": 0.17729262574271143
+        }
+      ],
+      "latency_ms": 16.802199999801815
+    },
+    {
+      "id": "paperqa-119",
+      "contexts": [
+        {
+          "source_id": "flash-attention",
+          "start": 5109,
+          "end": 6335,
+          "score": 0.47706061601638794
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 0,
+          "end": 1260,
+          "score": 0.46998986780703933
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 19765,
+          "end": 21051,
+          "score": 0.4631537199020386
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 6095,
+          "end": 7412,
+          "score": 0.4469099108088155
+        },
+        {
+          "source_id": "flash-attention",
+          "start": 18795,
+          "end": 19961,
+          "score": 0.4336951712551619
+        }
+      ],
+      "latency_ms": 11.083100049290806
+    }
+  ],
+  "report": {
+    "question_count": 75,
+    "retrieval": {
+      "positive_count": 56,
+      "evidence_hit_rate": 0.6071428571428571,
+      "evidence_recall": 0.5714285714285714,
+      "complete_evidence_rate": 0.5357142857142857,
+      "mrr": 0.31279761904761905,
+      "mean_context_words": 884.9066666666666
+    },
+    "answerability": null,
+    "generation": {
+      "judged_answer_count": 0,
+      "answer_accuracy": null,
+      "judgment_coverage": 0.0,
+      "judged_citation_question_count": 0,
+      "citation_precision": null,
+      "judged_claim_question_count": 0,
+      "claim_support_rate": null
+    },
+    "latency": {
+      "measured_count": 75,
+      "p50_ms": 12.733599985949695,
+      "p95_ms": 18.030699982773513
+    },
+    "metric_version": "evidence-coverage-v1",
+    "k": 5,
+    "max_context_words": 900,
+    "per_question": [
+      {
+        "id": "paperqa-002",
+        "category": "numeric",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 11.44079997902736
+      },
+      {
+        "id": "paperqa-004",
+        "category": "terminology",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.5,
+        "context_words": 864,
+        "latency_ms": 10.237400012556463
+      },
+      {
+        "id": "paperqa-005",
+        "category": "numeric",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 10.040999972261488
+      },
+      {
+        "id": "paperqa-006",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 864,
+        "latency_ms": 11.607499967794865
+      },
+      {
+        "id": "paperqa-007",
+        "category": "terminology",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.25,
+        "context_words": 900,
+        "latency_ms": 17.49800000106916
+      },
+      {
+        "id": "paperqa-009",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 18.006999976933002
+      },
+      {
+        "id": "paperqa-014",
+        "category": "numeric",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.3333333333333333,
+        "context_words": 900,
+        "latency_ms": 11.767600022722036
+      },
+      {
+        "id": "paperqa-015",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.3333333333333333,
+        "context_words": 900,
+        "latency_ms": 10.892300051636994
+      },
+      {
+        "id": "paperqa-016",
+        "category": "terminology",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.25,
+        "context_words": 900,
+        "latency_ms": 11.912600020878017
+      },
+      {
+        "id": "paperqa-017",
+        "category": "numeric",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.2,
+        "context_words": 900,
+        "latency_ms": 10.580400004982948
+      },
+      {
+        "id": "paperqa-018",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 1.0,
+        "context_words": 900,
+        "latency_ms": 14.8561000241898
+      },
+      {
+        "id": "paperqa-019",
+        "category": "terminology",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 14.969900017604232
+      },
+      {
+        "id": "paperqa-020",
+        "category": "numeric",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.2,
+        "context_words": 900,
+        "latency_ms": 10.378999984823167
+      },
+      {
+        "id": "paperqa-021",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 824,
+        "latency_ms": 10.133899981155992
+      },
+      {
+        "id": "paperqa-022",
+        "category": "terminology",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 1.0,
+        "context_words": 900,
+        "latency_ms": 12.651900004129857
+      },
+      {
+        "id": "paperqa-024",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 1.0,
+        "context_words": 900,
+        "latency_ms": 10.529600025620311
+      },
+      {
+        "id": "paperqa-026",
+        "category": "numeric",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 18.29360000556335
+      },
+      {
+        "id": "paperqa-029",
+        "category": "numeric",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.3333333333333333,
+        "context_words": 900,
+        "latency_ms": 12.003300013020635
+      },
+      {
+        "id": "paperqa-039",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 1.0,
+        "context_words": 762,
+        "latency_ms": 17.578899976797402
+      },
+      {
+        "id": "paperqa-040",
+        "category": "terminology",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 1.0,
+        "context_words": 900,
+        "latency_ms": 9.807599999476224
+      },
+      {
+        "id": "paperqa-041",
+        "category": "numeric",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 1.0,
+        "context_words": 799,
+        "latency_ms": 14.299299975391477
+      },
+      {
+        "id": "paperqa-042",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.25,
+        "context_words": 900,
+        "latency_ms": 16.117800027132034
+      },
+      {
+        "id": "paperqa-043",
+        "category": "terminology",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.5,
+        "context_words": 900,
+        "latency_ms": 14.756200020201504
+      },
+      {
+        "id": "paperqa-044",
+        "category": "numeric",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.25,
+        "context_words": 900,
+        "latency_ms": 15.02800005255267
+      },
+      {
+        "id": "paperqa-045",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 10.32990001840517
+      },
+      {
+        "id": "paperqa-046",
+        "category": "terminology",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.5,
+        "context_words": 900,
+        "latency_ms": 17.298799997661263
+      },
+      {
+        "id": "paperqa-048",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.5,
+        "context_words": 900,
+        "latency_ms": 15.06500004325062
+      },
+      {
+        "id": "paperqa-049",
+        "category": "terminology",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 11.171000020112842
+      },
+      {
+        "id": "paperqa-050",
+        "category": "numeric",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.3333333333333333,
+        "context_words": 900,
+        "latency_ms": 14.5584000274539
+      },
+      {
+        "id": "paperqa-052",
+        "category": "terminology",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 13.894999981857836
+      },
+      {
+        "id": "paperqa-053",
+        "category": "numeric",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 16.278800030704588
+      },
+      {
+        "id": "paperqa-054",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.2,
+        "context_words": 900,
+        "latency_ms": 13.126800011377782
+      },
+      {
+        "id": "paperqa-055",
+        "category": "terminology",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.5,
+        "context_words": 900,
+        "latency_ms": 11.974799970630556
+      },
+      {
+        "id": "paperqa-056",
+        "category": "numeric",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.3333333333333333,
+        "context_words": 900,
+        "latency_ms": 12.53579999320209
+      },
+      {
+        "id": "paperqa-057",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 14.057699998375028
+      },
+      {
+        "id": "paperqa-058",
+        "category": "terminology",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 12.131700001191348
+      },
+      {
+        "id": "paperqa-060",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 11.468500015325844
+      },
+      {
+        "id": "paperqa-062",
+        "category": "cross_section",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.5,
+        "reciprocal_rank": 1.0,
+        "context_words": 864,
+        "latency_ms": 12.482199992518872
+      },
+      {
+        "id": "paperqa-063",
+        "category": "cross_section",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.5,
+        "reciprocal_rank": 0.5,
+        "context_words": 900,
+        "latency_ms": 16.222700010985136
+      },
+      {
+        "id": "paperqa-065",
+        "category": "cross_section",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 1.0,
+        "context_words": 900,
+        "latency_ms": 12.474599992856383
+      },
+      {
+        "id": "paperqa-069",
+        "category": "cross_section",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.5,
+        "context_words": 900,
+        "latency_ms": 13.240500004030764
+      },
+      {
+        "id": "paperqa-070",
+        "category": "cross_section",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 15.1909000123851
+      },
+      {
+        "id": "paperqa-071",
+        "category": "cross_paper",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.5,
+        "reciprocal_rank": 0.25,
+        "context_words": 900,
+        "latency_ms": 17.033199954312295
+      },
+      {
+        "id": "paperqa-072",
+        "category": "cross_paper",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.5,
+        "reciprocal_rank": 0.25,
+        "context_words": 900,
+        "latency_ms": 13.095500005874783
+      },
+      {
+        "id": "paperqa-073",
+        "category": "cross_paper",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 9.80070000514388
+      },
+      {
+        "id": "paperqa-075",
+        "category": "cross_paper",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 12.733599985949695
+      },
+      {
+        "id": "paperqa-078",
+        "category": "cross_paper",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 14.876400004141033
+      },
+      {
+        "id": "paperqa-079",
+        "category": "cross_paper",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 18.37619999423623
+      },
+      {
+        "id": "paperqa-081",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.25,
+        "context_words": 900,
+        "latency_ms": 15.379499993287027
+      },
+      {
+        "id": "paperqa-082",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 12.234599969815463
+      },
+      {
+        "id": "paperqa-084",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.3333333333333333,
+        "context_words": 900,
+        "latency_ms": 14.449000009335577
+      },
+      {
+        "id": "paperqa-085",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 1.0,
+        "context_words": 900,
+        "latency_ms": 15.411300002597272
+      },
+      {
+        "id": "paperqa-087",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.3333333333333333,
+        "context_words": 799,
+        "latency_ms": 16.22220000717789
+      },
+      {
+        "id": "paperqa-088",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 1.0,
+        "reciprocal_rank": 0.3333333333333333,
+        "context_words": 900,
+        "latency_ms": 11.79949997458607
+      },
+      {
+        "id": "paperqa-089",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 13.591399998404086
+      },
+      {
+        "id": "paperqa-090",
+        "category": "semantic",
+        "split": "test",
+        "answerable": true,
+        "evidence_recall": 0.0,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 11.414100008551031
+      },
+      {
+        "id": "paperqa-091",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 825,
+        "latency_ms": 17.42649998050183
+      },
+      {
+        "id": "paperqa-092",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 14.765200030524284
+      },
+      {
+        "id": "paperqa-093",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 18.030699982773513
+      },
+      {
+        "id": "paperqa-094",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 10.417399986181408
+      },
+      {
+        "id": "paperqa-096",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 14.645899995230138
+      },
+      {
+        "id": "paperqa-098",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 758,
+        "latency_ms": 11.359800002537668
+      },
+      {
+        "id": "paperqa-100",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 10.042999987490475
+      },
+      {
+        "id": "paperqa-102",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 9.86890000058338
+      },
+      {
+        "id": "paperqa-104",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 11.779599997680634
+      },
+      {
+        "id": "paperqa-106",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 762,
+        "latency_ms": 16.261000011581928
+      },
+      {
+        "id": "paperqa-107",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 30.65750002861023
+      },
+      {
+        "id": "paperqa-108",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 10.292600025422871
+      },
+      {
+        "id": "paperqa-109",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 853,
+        "latency_ms": 11.29419996868819
+      },
+      {
+        "id": "paperqa-110",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 10.188000043854117
+      },
+      {
+        "id": "paperqa-112",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 9.037100011482835
+      },
+      {
+        "id": "paperqa-115",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 10.718800011090934
+      },
+      {
+        "id": "paperqa-116",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 13.888000044971704
+      },
+      {
+        "id": "paperqa-117",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 694,
+        "latency_ms": 16.802199999801815
+      },
+      {
+        "id": "paperqa-119",
+        "category": "unanswerable",
+        "split": "test",
+        "answerable": false,
+        "evidence_recall": null,
+        "reciprocal_rank": 0,
+        "context_words": 900,
+        "latency_ms": 11.083100049290806
+      }
+    ],
+    "by_category": {
+      "cross_paper": {
+        "question_count": 6,
+        "retrieval": {
+          "positive_count": 6,
+          "evidence_hit_rate": 0.3333333333333333,
+          "evidence_recall": 0.16666666666666666,
+          "complete_evidence_rate": 0,
+          "mrr": 0.08333333333333333,
+          "mean_context_words": 900
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": 0.0,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 6,
+          "p50_ms": 13.985950005007908,
+          "p95_ms": 18.37619999423623
+        }
+      },
+      "cross_section": {
+        "question_count": 5,
+        "retrieval": {
+          "positive_count": 5,
+          "evidence_hit_rate": 0.8,
+          "evidence_recall": 0.6,
+          "complete_evidence_rate": 0.4,
+          "mrr": 0.6,
+          "mean_context_words": 892.8
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": 0.0,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 5,
+          "p50_ms": 13.240500004030764,
+          "p95_ms": 16.222700010985136
+        }
+      },
+      "numeric": {
+        "question_count": 12,
+        "retrieval": {
+          "positive_count": 12,
+          "evidence_hit_rate": 0.6666666666666666,
+          "evidence_recall": 0.6666666666666666,
+          "complete_evidence_rate": 0.6666666666666666,
+          "mrr": 0.24861111111111112,
+          "mean_context_words": 891.5833333333334
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": 0.0,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 12,
+          "p50_ms": 12.269550003111362,
+          "p95_ms": 18.29360000556335
+        }
+      },
+      "semantic": {
+        "question_count": 21,
+        "retrieval": {
+          "positive_count": 21,
+          "evidence_hit_rate": 0.5714285714285714,
+          "evidence_recall": 0.5714285714285714,
+          "complete_evidence_rate": 0.5714285714285714,
+          "mrr": 0.3111111111111111,
+          "mean_context_words": 883.2857142857143
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": 0.0,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 21,
+          "p50_ms": 13.591399998404086,
+          "p95_ms": 17.578899976797402
+        }
+      },
+      "terminology": {
+        "question_count": 12,
+        "retrieval": {
+          "positive_count": 12,
+          "evidence_hit_rate": 0.6666666666666666,
+          "evidence_recall": 0.6666666666666666,
+          "complete_evidence_rate": 0.6666666666666666,
+          "mrr": 0.375,
+          "mean_context_words": 897
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": 0.0,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 12,
+          "p50_ms": 12.391800002660602,
+          "p95_ms": 17.49800000106916
+        }
+      },
+      "unanswerable": {
+        "question_count": 19,
+        "retrieval": {
+          "positive_count": 0,
+          "evidence_hit_rate": null,
+          "evidence_recall": null,
+          "complete_evidence_rate": null,
+          "mrr": null,
+          "mean_context_words": 868
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": null,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 19,
+          "p50_ms": 11.359800002537668,
+          "p95_ms": 30.65750002861023
+        }
+      }
+    },
+    "by_split": {
+      "test": {
+        "question_count": 75,
+        "retrieval": {
+          "positive_count": 56,
+          "evidence_hit_rate": 0.6071428571428571,
+          "evidence_recall": 0.5714285714285714,
+          "complete_evidence_rate": 0.5357142857142857,
+          "mrr": 0.31279761904761905,
+          "mean_context_words": 884.9066666666666
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": 0.0,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 75,
+          "p50_ms": 12.733599985949695,
+          "p95_ms": 18.030699982773513
+        }
+      }
+    },
+    "by_tag": {
+      "adversarial": {
+        "question_count": 1,
+        "retrieval": {
+          "positive_count": 0,
+          "evidence_hit_rate": null,
+          "evidence_recall": null,
+          "complete_evidence_rate": null,
+          "mrr": null,
+          "mean_context_words": 900
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": null,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 1,
+          "p50_ms": 11.083100049290806,
+          "p95_ms": 11.083100049290806
+        }
+      },
+      "ambiguous": {
+        "question_count": 2,
+        "retrieval": {
+          "positive_count": 0,
+          "evidence_hit_rate": null,
+          "evidence_recall": null,
+          "complete_evidence_rate": null,
+          "mrr": null,
+          "mean_context_words": 900
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": null,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 2,
+          "p50_ms": 9.877950011286885,
+          "p95_ms": 10.718800011090934
+        }
+      },
+      "cross_paper": {
+        "question_count": 6,
+        "retrieval": {
+          "positive_count": 6,
+          "evidence_hit_rate": 0.3333333333333333,
+          "evidence_recall": 0.16666666666666666,
+          "complete_evidence_rate": 0,
+          "mrr": 0.08333333333333333,
+          "mean_context_words": 900
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": 0.0,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 6,
+          "p50_ms": 13.985950005007908,
+          "p95_ms": 18.37619999423623
+        }
+      },
+      "cross_section": {
+        "question_count": 5,
+        "retrieval": {
+          "positive_count": 5,
+          "evidence_hit_rate": 0.8,
+          "evidence_recall": 0.6,
+          "complete_evidence_rate": 0.4,
+          "mrr": 0.6,
+          "mean_context_words": 892.8
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": 0.0,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 5,
+          "p50_ms": 13.240500004030764,
+          "p95_ms": 16.222700010985136
+        }
+      },
+      "missing_detail": {
+        "question_count": 5,
+        "retrieval": {
+          "positive_count": 0,
+          "evidence_hit_rate": null,
+          "evidence_recall": null,
+          "complete_evidence_rate": null,
+          "mrr": null,
+          "mean_context_words": 863
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": null,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 5,
+          "p50_ms": 11.29419996868819,
+          "p95_ms": 30.65750002861023
+        }
+      },
+      "multi_evidence": {
+        "question_count": 11,
+        "retrieval": {
+          "positive_count": 11,
+          "evidence_hit_rate": 0.5454545454545454,
+          "evidence_recall": 0.36363636363636365,
+          "complete_evidence_rate": 0.18181818181818182,
+          "mrr": 0.3181818181818182,
+          "mean_context_words": 896.7272727272727
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": 0.0,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 11,
+          "p50_ms": 13.240500004030764,
+          "p95_ms": 18.37619999423623
+        }
+      },
+      "near_domain": {
+        "question_count": 7,
+        "retrieval": {
+          "positive_count": 0,
+          "evidence_hit_rate": null,
+          "evidence_recall": null,
+          "complete_evidence_rate": null,
+          "mrr": null,
+          "mean_context_words": 869
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": null,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 7,
+          "p50_ms": 14.645899995230138,
+          "p95_ms": 18.030699982773513
+        }
+      },
+      "numeric": {
+        "question_count": 12,
+        "retrieval": {
+          "positive_count": 12,
+          "evidence_hit_rate": 0.6666666666666666,
+          "evidence_recall": 0.6666666666666666,
+          "complete_evidence_rate": 0.6666666666666666,
+          "mrr": 0.24861111111111112,
+          "mean_context_words": 891.5833333333334
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": 0.0,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 12,
+          "p50_ms": 12.269550003111362,
+          "p95_ms": 18.29360000556335
+        }
+      },
+      "out_of_domain": {
+        "question_count": 2,
+        "retrieval": {
+          "positive_count": 0,
+          "evidence_hit_rate": null,
+          "evidence_recall": null,
+          "complete_evidence_rate": null,
+          "mrr": null,
+          "mean_context_words": 797
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": null,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 2,
+          "p50_ms": 15.34510002238676,
+          "p95_ms": 16.802199999801815
+        }
+      },
+      "paraphrase": {
+        "question_count": 8,
+        "retrieval": {
+          "positive_count": 8,
+          "evidence_hit_rate": 0.625,
+          "evidence_recall": 0.625,
+          "complete_evidence_rate": 0.625,
+          "mrr": 0.28125,
+          "mean_context_words": 887.375
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": 0.0,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 8,
+          "p50_ms": 14.020200003869832,
+          "p95_ms": 16.22220000717789
+        }
+      },
+      "partial_comparison": {
+        "question_count": 2,
+        "retrieval": {
+          "positive_count": 0,
+          "evidence_hit_rate": null,
+          "evidence_recall": null,
+          "complete_evidence_rate": null,
+          "mrr": null,
+          "mean_context_words": 900
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": null,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 2,
+          "p50_ms": 10.824249999132007,
+          "p95_ms": 11.779599997680634
+        }
+      },
+      "semantic": {
+        "question_count": 21,
+        "retrieval": {
+          "positive_count": 21,
+          "evidence_hit_rate": 0.5714285714285714,
+          "evidence_recall": 0.5714285714285714,
+          "complete_evidence_rate": 0.5714285714285714,
+          "mrr": 0.3111111111111111,
+          "mean_context_words": 883.2857142857143
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": 0.0,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 21,
+          "p50_ms": 13.591399998404086,
+          "p95_ms": 17.578899976797402
+        }
+      },
+      "terminology": {
+        "question_count": 12,
+        "retrieval": {
+          "positive_count": 12,
+          "evidence_hit_rate": 0.6666666666666666,
+          "evidence_recall": 0.6666666666666666,
+          "complete_evidence_rate": 0.6666666666666666,
+          "mrr": 0.375,
+          "mean_context_words": 897
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": 0.0,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 12,
+          "p50_ms": 12.391800002660602,
+          "p95_ms": 17.49800000106916
+        }
+      },
+      "unanswerable": {
+        "question_count": 19,
+        "retrieval": {
+          "positive_count": 0,
+          "evidence_hit_rate": null,
+          "evidence_recall": null,
+          "complete_evidence_rate": null,
+          "mrr": null,
+          "mean_context_words": 868
+        },
+        "answerability": null,
+        "generation": {
+          "judged_answer_count": 0,
+          "answer_accuracy": null,
+          "judgment_coverage": null,
+          "judged_citation_question_count": 0,
+          "citation_precision": null,
+          "judged_claim_question_count": 0,
+          "claim_support_rate": null
+        },
+        "latency": {
+          "measured_count": 19,
+          "p50_ms": 11.359800002537668,
+          "p95_ms": 30.65750002861023
+        }
+      }
+    }
+  }
+}
