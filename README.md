@@ -31,15 +31,16 @@ answer text refers to one of them:
       "title": "Demo Paper",
       "chunk_index": 0,
       "text": "Self-attention helps models connect tokens across a sequence. ...",
-      "score": 0.5302434527583813
+      "score": 0.5302434527583813,
+      "score_type": "cosine"
     }
   ]
 }
 ```
 
-`score` is cosine similarity: higher means closer to the question. It is the only signal
-you have for judging whether the sources are actually about what you asked — the answer
-text reads the same either way.
+`score_type` identifies the ranking stage: `cosine`, `fts`, `rrf`, or
+`cross_encoder`. Higher scores rank first within that stage; scores from different
+stages are not comparable. None is a probability that the answer is correct.
 
 ## What You Will Learn
 
@@ -364,8 +365,9 @@ sequenceDiagram
     API->>Embed: Embed question
     Embed-->>API: Query vector
 
-    API->>DB: Similarity search over chunk embeddings
-    DB-->>API: Top-k chunks with scores and sources
+    API->>DB: Dense search and optional full-text search
+    DB-->>API: Candidate passages
+    API->>API: Optional RRF fusion and cross-encoder reranking
 
     API->>API: Build grounded prompt with retrieved context
     API->>LLM: Ask using retrieved chunks only
@@ -384,9 +386,43 @@ curl -X POST http://127.0.0.1:8000/ask \
 `top_k` defaults to 5 and is capped at 20. It is a context budget rather than a result
 count: every extra chunk is more prompt, so raising it costs tokens on every question.
 
-A question the corpus cannot answer is a normal outcome, not an error — you get `200` and
-the answer `"The sources do not contain enough information to answer this question."`,
-without the model being called at all.
+If retrieval returns no passages, the service returns `200` and an insufficient-sources
+answer without calling the LLM. Otherwise the prompt asks the LLM to abstain when evidence
+is insufficient; this is not a verified answerability classifier.
+
+### Retrieval modes
+
+The API defaults to `hybrid_rerank`. Set `RETRIEVAL_MODE=dense` for the original,
+lower-latency path. Change `.env` and restart the API to select a mode:
+
+| Mode | Pipeline |
+|---|---|
+| `dense` | Original cosine retrieval; historical baseline |
+| `fts` | PostgreSQL English full-text retrieval |
+| `hybrid` | Dense + full-text candidates, reciprocal rank fusion (RRF) |
+| `dense_rerank` | Dense candidates, cross-encoder, final Top-k |
+| `hybrid_rerank` | Dense + full-text candidates, RRF, cross-encoder, final Top-k |
+
+`RETRIEVAL_CANDIDATE_K=30` bounds each candidate list and the fused pool.
+The effective pool is at least the requested `top_k`. RRF adds `1 / (60 + rank)`
+per list and deduplicates chunk IDs. Full-text search uses an OR query over title
+and body with PostgreSQL `ts_rank_cd`; it is **not BM25**. It searches the same
+embedded chunks as dense retrieval. No extra service or dependency is required.
+
+The reranker jointly scores the question and each candidate's title/body using
+`cross-encoder/ms-marco-MiniLM-L6-v2`, pinned to revision
+`233902d25c440f23af6f7d6e94d2946bac0bee0a`. It runs on CPU with batches of 16 and a
+512-token pair limit. Longer pairs are truncated. Its raw logits can be negative.
+The model loads lazily once per process; pre-cache it before offline evaluation:
+
+```bash
+python -c "from app.rag.ranking import get_reranker; get_reranker()"
+```
+
+The first load may download weights. A loading/inference error fails the request;
+there is no silent fallback to another retrieval mode. Full-text vectors are
+computed at query time; measure a persisted search vector and GIN index when the
+corpus grows. Current experiments use 731 chunks, not a production load test.
 
 ## Run Tests
 
@@ -549,12 +585,10 @@ tests/
   chunks that lack one, so switching models would leave two kinds of vector in one index.
   That degrades retrieval quietly rather than failing, which makes it the most important
   thing on this list.
-- **Retrieval quality.** Nine of twenty-five questions put the wrong document at rank 1.
-  Adjacent-chunk expansion after retrieval is the cheapest idea not yet tried: chunks
-  overlap, so a chunk's neighbours often carry the sentence it is missing.
-- **`top_k` and `chunk_size` have never been derived from anything.** The evaluation set
-  cannot currently tell `top_k=5` from `top_k=20` — rank 1 does not move — so the choice
-  stays a budget decision until a question exists whose answer sits in the middle ranks.
+- **Evidence completeness.** Use the frozen evidence benchmark to diagnose remaining
+  cross-section and cross-paper misses before adding expansion or query decomposition.
+- **Chunking.** Compare alternatives under the same five-context/900-word benchmark
+  budget; preserve original-text provenance when changing chunk boundaries.
 - **A similarity threshold**, which needs either a better embedding model or a corpus whose
   answerable and unanswerable questions score further apart than they do now.
 - **A vector index.** Not built: below roughly 100k chunks a sequential scan is fast enough

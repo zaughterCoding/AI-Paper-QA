@@ -1,7 +1,9 @@
 """Reads and writes for the ``chunks`` table."""
 
+import re
 import uuid
 from dataclasses import dataclass
+from typing import Literal
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -12,7 +14,7 @@ from app.rag.chunking import TextChunk
 
 @dataclass(frozen=True)
 class RetrievedChunk:
-    """One chunk returned by a vector search.
+    """A ranked chunk with source provenance.
 
     A plain dataclass rather than the ORM object, for three reasons. It carries the
     parent document's title, which lives in another table and is not a Chunk attribute.
@@ -20,8 +22,7 @@ class RetrievedChunk:
     survives the session closing, whereas touching a detached ORM instance raises
     DetachedInstanceError.
 
-    ``score`` is cosine similarity in [-1, 1], higher meaning more similar. Stored vectors
-    are normalised, so it equals the dot product of the two vectors.
+    Scores are comparable only within the same ranking stage.
     """
 
     chunk_id: uuid.UUID
@@ -30,6 +31,7 @@ class RetrievedChunk:
     chunk_index: int
     text: str
     score: float
+    score_type: Literal["cosine", "fts", "rrf", "cross_encoder"] = "cosine"
 
 
 class ChunkRepository:
@@ -160,4 +162,30 @@ class ChunkRepository:
                 score=row.score,
             )
             for row in self.session.execute(statement)
+        ]
+
+    def search_lexical(self, question: str, top_k: int) -> list[RetrievedChunk]:
+        """Rank indexed passages by PostgreSQL full-text relevance."""
+        if top_k < 1:
+            raise ValueError("top_k must be >= 1")
+        terms = re.findall(r"\w+(?:[-.]\w+)*", question)
+        if not terms:
+            return []
+        # OR preserves recall for natural-language questions; parameters remain bound.
+        query_text = " OR ".join(f'"{term}"' for term in terms)
+        query = func.websearch_to_tsquery("english", query_text)
+        # ponytail: compute per query; persist and index the vector when the corpus grows.
+        document = func.to_tsvector("english", Document.title + " " + Chunk.text)
+        rank = func.ts_rank_cd(document, query, 32)
+        statement = (
+            select(Chunk, Document.title, rank.label("rank"))
+            .join(Document, Document.id == Chunk.document_id)
+            .where(Chunk.embedding.is_not(None), document.op("@@")(query))
+            .order_by(rank.desc(), Document.title, Chunk.chunk_index, Chunk.id)
+            .limit(top_k)
+        )
+        return [
+            RetrievedChunk(chunk.id, chunk.document_id, title, chunk.chunk_index,
+                           chunk.text, float(score), "fts")
+            for chunk, title, score in self.session.execute(statement)
         ]

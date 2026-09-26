@@ -12,6 +12,7 @@ silently change the API contract. So the boundary converts explicitly: request -
 """
 
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -104,10 +105,9 @@ class SourceItem(BaseModel):
     title: str
     chunk_index: int
     text: str
-    # Cosine similarity in [-1, 1], higher meaning closer to the question. Exposed because
-    # it is the only signal a caller has for judging whether an answer's sources are
-    # actually about the question -- the answer text itself reads the same either way.
+    # Scores are not calibrated answerability probabilities.
     score: float
+    score_type: Literal["cosine", "fts", "rrf", "cross_encoder"] = "cosine"
 
 
 class AskResponse(BaseModel):

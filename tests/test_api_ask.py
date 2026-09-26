@@ -27,6 +27,7 @@ from sqlalchemy.orm import Session
 from app.api import routes
 from app.api.schemas import AskRequest
 from app.core.database import get_db_session
+from app.core.config import Settings, get_settings
 from app.main import create_app
 from app.models.tables import Chunk, Document, QALog
 from app.rag.embeddings import get_embedding_client
@@ -55,7 +56,7 @@ def count_logs(session: Session) -> int:
 
 
 @contextmanager
-def app_client(db_session: Session, embedder: FakeEmbeddingClient, llm) -> Iterator[TestClient]:
+def app_client(db_session: Session, embedder: FakeEmbeddingClient, llm, retrieval_mode="dense") -> Iterator[TestClient]:
     """An app wired to the test database, with no real model loaded and no network.
 
     Three dependencies are overridden:
@@ -74,6 +75,7 @@ def app_client(db_session: Session, embedder: FakeEmbeddingClient, llm) -> Itera
     app.dependency_overrides[get_db_session] = lambda: db_session
     app.dependency_overrides[get_embedding_client] = lambda: embedder
     app.dependency_overrides[get_llm_client] = lambda: llm
+    app.dependency_overrides[get_settings] = lambda: Settings(_env_file=None, retrieval_mode=retrieval_mode)
 
     with TestClient(app) as test_client:
         yield test_client
@@ -143,7 +145,7 @@ def test_source_items_expose_exactly_the_documented_fields(client: TestClient) -
 
     assert body["sources"]
     assert all(
-        set(source) == {"document_id", "title", "chunk_index", "text", "score"}
+        set(source) == {"document_id", "title", "chunk_index", "text", "score", "score_type"}
         for source in body["sources"]
     )
 

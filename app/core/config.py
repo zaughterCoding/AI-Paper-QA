@@ -1,11 +1,14 @@
 from functools import lru_cache
+from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Dimension of the embedding vectors. This is part of the database schema
 # (chunks.embedding is vector(384)), not a runtime switch: changing it means updating
 # this constant, adding an Alembic migration, and re-encoding every chunk.
 EMBEDDING_DIM = 384
+RetrievalMode = Literal["dense", "fts", "hybrid", "dense_rerank", "hybrid_rerank"]
 
 
 class Settings(BaseSettings):
@@ -19,6 +22,11 @@ class Settings(BaseSettings):
     # 384-dimensional so the schema is unchanged. It also scores unrelated passages
     # closer to zero, which leaves more room for a similarity threshold later.
     embedding_model: str = "sentence-transformers/multi-qa-MiniLM-L6-cos-v1"
+
+    retrieval_mode: RetrievalMode = "hybrid_rerank"
+    retrieval_candidate_k: int = Field(default=30, ge=1, le=200)
+    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L6-v2"
+    reranker_revision: str = "233902d25c440f23af6f7d6e94d2946bac0bee0a"
 
     # --- LLM (OpenAI-compatible; DeepSeek by default) ---
     llm_provider: str = "deepseek"

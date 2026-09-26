@@ -1,4 +1,4 @@
-"""Read-only baseline runner; export provenance spans without redistributing papers.
+"""Read-only retrieval runner; export provenance spans without paper bodies.
 
     python -m scripts.run_benchmark --split test --output eval/runs/baseline-test.json
     python -m scripts.benchmark --predictions eval/runs/baseline-test.json
@@ -15,11 +15,15 @@ from pathlib import Path
 import platform
 import subprocess
 import time
+from typing import get_args
 
+from app.core.config import RetrievalMode
 from scripts.benchmark import ROOT, digest, load_benchmark, normalize, score
 
 
-def run(split: str, k: int, max_words: int, verify_vectors: bool) -> dict:
+def run(split: str, k: int, max_words: int, verify_vectors: bool,
+        retrieval_mode: RetrievalMode = "dense", candidate_k: int = 30,
+        diagnostics: bool = False) -> dict:
     # Benchmarking should use cached weights; never silently fetch a different revision.
     os.environ.setdefault("HF_HUB_OFFLINE", "1")
     from sqlalchemy import select, text
@@ -29,6 +33,7 @@ def run(split: str, k: int, max_words: int, verify_vectors: bool) -> dict:
     from app.models.tables import Chunk, Document
     from app.rag.chunking import TextChunker
     from app.rag.embeddings import get_embedding_client
+    from app.rag.ranking import get_reranker
     from app.services.retrieval import RetrievalService, MAX_TOP_K
 
     if not 1 <= k <= MAX_TOP_K or max_words < 1:
@@ -84,15 +89,19 @@ def run(split: str, k: int, max_words: int, verify_vectors: bool) -> dict:
             max_error = float(np.max(np.abs(vectors - stored)))
             if max_error > 1e-4:
                 raise ValueError(f"Stored embeddings do not match the current model: max error {max_error}")
-        service = RetrievalService(session, client)
+        service = RetrievalService(session, client, mode=retrieval_mode, candidate_k=candidate_k)
         service.retrieve("benchmark warmup", k)
         predictions = []
+        candidate_predictions = []
         for q in selected:
             started = time.perf_counter()
             retrieved = service.retrieve(q["question"], k)
             elapsed = (time.perf_counter() - started) * 1000
-            predictions.append({"id": q["id"], "contexts": [dict(offsets[c.chunk_id], score=c.score) for c in retrieved],
+            predictions.append({"id": q["id"], "contexts": [dict(offsets[c.chunk_id], score=c.score, score_type=c.score_type) for c in retrieved],
                                 "latency_ms": elapsed})
+            if diagnostics:
+                candidates = service.retrieve_candidates(q["question"], max(candidate_k, k))
+                candidate_predictions.append({"id": q["id"], "contexts": [offsets[c.chunk_id] for c in candidates]})
         pg_version = session.scalar(text("SHOW server_version"))
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     unchanged = subprocess.run(["git", "diff", "--quiet", manifest["baseline_commit"], "--", "app"], cwd=ROOT).returncode == 0
@@ -101,10 +110,14 @@ def run(split: str, k: int, max_words: int, verify_vectors: bool) -> dict:
     metadata = {
         "benchmark_version": manifest["version"], "benchmark_sha256": manifest["questions_sha256"],
         "corpus_sha256": manifest["corpus_sha256"], "system_commit": commit,
+        "tracked_worktree_dirty": bool(subprocess.check_output(
+            ["git", "status", "--porcelain", "--untracked-files=no"], cwd=ROOT, text=True).strip()),
         "pipeline_sha256": digest(json.dumps(pipeline_hashes, sort_keys=True)),
         "runner_sha256": digest(Path(__file__).read_text(encoding="utf-8")),
         "scorer_sha256": digest((ROOT / "scripts/benchmark.py").read_text(encoding="utf-8")),
-        "system_name": "dense-pgvector-v0.1.0" if unchanged else "working-tree-retrieval", "mode": "retrieval_only",
+        "system_name": f"{retrieval_mode}-c{candidate_k}", "mode": "retrieval_only",
+        "retrieval_mode": retrieval_mode, "candidate_k": candidate_k,
+        "rrf_rank_constant": 60 if retrieval_mode.startswith("hybrid") else None,
         "app_matches_baseline": unchanged,
         "embedding_model": get_settings().embedding_model, "model_weights_sha256": model_hash.hexdigest(),
         "model_max_seq_length": client.model.max_seq_length,
@@ -116,11 +129,26 @@ def run(split: str, k: int, max_words: int, verify_vectors: bool) -> dict:
         "python": platform.python_version(), "platform": platform.platform(),
         "processor": platform.processor(), "postgresql": pg_version,
         "dependencies": {p: version(p) for p in ("torch", "sentence-transformers", "transformers", "pgvector")},
-        "latency_scope": "single warm run; embedding + database retrieval; excludes model loading, scoring and generation",
+        "latency_scope": "single warm run; query embedding + retrieval + optional reranking; excludes loading, diagnostics, scoring and generation",
         "answerability_note": "No answer/abstain decisions: confusion matrix deliberately unavailable, not zero.",
     }
-    return {"metadata": metadata, "predictions": predictions,
-            "report": score(selected, predictions, corpus, k, max_words)}
+    if retrieval_mode.endswith("_rerank"):
+        reranker = get_reranker().model
+        fingerprint = hashlib.sha256()
+        for key, tensor in sorted(reranker.state_dict().items()):
+            fingerprint.update(key.encode())
+            fingerprint.update(tensor.detach().cpu().numpy().tobytes())
+        metadata.update({"reranker_model": get_settings().reranker_model,
+                         "reranker_revision": get_settings().reranker_revision,
+                         "reranker_weights_sha256": fingerprint.hexdigest(),
+                         "reranker_tokenizer_sha256": digest(reranker.tokenizer.backend_tokenizer.to_str()),
+                         "reranker_max_length": 512, "reranker_batch_size": 16})
+    result = {"metadata": metadata, "predictions": predictions,
+              "report": score(selected, predictions, corpus, k, max_words)}
+    if diagnostics:
+        result["candidate_report"] = score(selected, candidate_predictions, corpus,
+                                            max(candidate_k, k), max(candidate_k, k) * 180)
+    return result
 
 
 def main() -> None:
@@ -129,9 +157,13 @@ def main() -> None:
     parser.add_argument("--k", type=int, default=5)
     parser.add_argument("--max-words", type=int, default=900)
     parser.add_argument("--skip-vector-verification", action="store_true")
+    parser.add_argument("--retrieval-mode", choices=get_args(RetrievalMode), default="dense")
+    parser.add_argument("--candidate-k", type=int, default=30)
+    parser.add_argument("--diagnostics", action="store_true")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    result = run(args.split, args.k, args.max_words, not args.skip_vector_verification)
+    result = run(args.split, args.k, args.max_words, not args.skip_vector_verification,
+                 args.retrieval_mode, args.candidate_k, args.diagnostics)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"output": str(args.output), "question_count": result["report"]["question_count"],

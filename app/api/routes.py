@@ -20,6 +20,7 @@ from app.api.schemas import (
     SourceItem,
 )
 from app.core.database import get_db_session
+from app.core.config import Settings, get_settings
 from app.rag.embeddings import EmbeddingClient, get_embedding_client
 from app.rag.llm import LLMClient, LLMError, get_llm_client
 from app.repositories.documents import DocumentRepository
@@ -102,6 +103,7 @@ def ask_question(
     # model -- an embedding model locally, or a connection pool per request for the LLM.
     embedding_client: Annotated[EmbeddingClient, Depends(get_embedding_client)],
     llm_client: Annotated[LLMClient, Depends(get_llm_client)],
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> AskResponse:
     """Answer a question from the corpus, with the sources the answer rests on.
 
@@ -117,7 +119,9 @@ def ask_question(
     retrieval comes back empty.
     """
     service = AnswerService(
-        RetrievalService(session, embedding_client), llm_client, QALogRepository(session)
+        RetrievalService(session, embedding_client, mode=settings.retrieval_mode,
+                         candidate_k=settings.retrieval_candidate_k),
+        llm_client, QALogRepository(session)
     )
 
     try:
