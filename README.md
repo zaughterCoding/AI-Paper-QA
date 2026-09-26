@@ -403,6 +403,12 @@ lower-latency path. Change `.env` and restart the API to select a mode:
 | `dense_rerank` | Dense candidates, cross-encoder, final Top-k |
 | `hybrid_rerank` | Dense + full-text candidates, RRF, cross-encoder, final Top-k |
 
+On the frozen test set, complete evidence coverage rises from **53.57% to 64.29%**;
+same-machine CPU P50 retrieval latency rises from **11.77 ms to 997.08 ms**.
+Terminology regresses and cross-paper completeness remains zero. See the
+[phase-one ablation and test report](eval/benchmark/v1/experiments/phase1/README.md)
+for category results, limitations and reproduction commands.
+
 `RETRIEVAL_CANDIDATE_K=30` bounds each candidate list and the fused pool.
 The effective pool is at least the requested `top_k`. RRF adds `1 / (60 + rank)`
 per list and deduplicates chunk IDs. Full-text search uses an OR query over title

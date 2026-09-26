@@ -5,6 +5,8 @@ The application at Git tag `v0.1.0` (commit
 separate, versioned evaluation artifact. Rerun that application on these questions;
 do not compare its old 35-question document hit rate directly with these scores.
 
+Subsequent experiments: [phase 1, hybrid retrieval and reranking](v1/experiments/phase1/README.md).
+
 ## Scope and frozen assets
 
 120 English questions over 20 pinned ML papers: 90 answerable, 30 unanswerable.

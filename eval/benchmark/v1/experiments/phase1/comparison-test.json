@@ -1,0 +1,1410 @@
+{
+  "question_count": 75,
+  "retrieval": {
+    "positive_count": 56,
+    "evidence_hit_rate": 0.7321428571428571,
+    "evidence_recall": 0.6875,
+    "complete_evidence_rate": 0.6428571428571429,
+    "mrr": 0.55625,
+    "mean_context_words": 889.96
+  },
+  "answerability": null,
+  "generation": {
+    "judged_answer_count": 0,
+    "answer_accuracy": null,
+    "judgment_coverage": 0.0,
+    "judged_citation_question_count": 0,
+    "citation_precision": null,
+    "judged_claim_question_count": 0,
+    "claim_support_rate": null
+  },
+  "latency": {
+    "measured_count": 75,
+    "p50_ms": 997.0799000002444,
+    "p95_ms": 1207.8170000459068
+  },
+  "metric_version": "evidence-coverage-v1",
+  "k": 5,
+  "max_context_words": 900,
+  "per_question": [
+    {
+      "id": "paperqa-002",
+      "category": "numeric",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 1168.8775999937207
+    },
+    {
+      "id": "paperqa-004",
+      "category": "terminology",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 843.9974000211805
+    },
+    {
+      "id": "paperqa-005",
+      "category": "numeric",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 990.0778000010177
+    },
+    {
+      "id": "paperqa-006",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 948.5932999523357
+    },
+    {
+      "id": "paperqa-007",
+      "category": "terminology",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 0.3333333333333333,
+      "context_words": 900,
+      "latency_ms": 1061.6296000080183
+    },
+    {
+      "id": "paperqa-009",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 967.2653000452556
+    },
+    {
+      "id": "paperqa-014",
+      "category": "numeric",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 1101.5385999926366
+    },
+    {
+      "id": "paperqa-015",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 1170.4173000180162
+    },
+    {
+      "id": "paperqa-016",
+      "category": "terminology",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 972.5102999946102
+    },
+    {
+      "id": "paperqa-017",
+      "category": "numeric",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 980.0576000125147
+    },
+    {
+      "id": "paperqa-018",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 901.1034999857657
+    },
+    {
+      "id": "paperqa-019",
+      "category": "terminology",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 824,
+      "latency_ms": 948.0755000258796
+    },
+    {
+      "id": "paperqa-020",
+      "category": "numeric",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 989.7879000054672
+    },
+    {
+      "id": "paperqa-021",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 824,
+      "latency_ms": 1003.1315999804065
+    },
+    {
+      "id": "paperqa-022",
+      "category": "terminology",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 1105.7669000001624
+    },
+    {
+      "id": "paperqa-024",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 1084.2308000428602
+    },
+    {
+      "id": "paperqa-026",
+      "category": "numeric",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 1207.8170000459068
+    },
+    {
+      "id": "paperqa-029",
+      "category": "numeric",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 0.5,
+      "context_words": 900,
+      "latency_ms": 910.4697000002488
+    },
+    {
+      "id": "paperqa-039",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 762,
+      "latency_ms": 1000.8119000121951
+    },
+    {
+      "id": "paperqa-040",
+      "category": "terminology",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 984.1490000253543
+    },
+    {
+      "id": "paperqa-041",
+      "category": "numeric",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 799,
+      "latency_ms": 928.1312999664806
+    },
+    {
+      "id": "paperqa-042",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 799,
+      "latency_ms": 912.5356000149623
+    },
+    {
+      "id": "paperqa-043",
+      "category": "terminology",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 949.6159999980591
+    },
+    {
+      "id": "paperqa-044",
+      "category": "numeric",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 0.5,
+      "context_words": 900,
+      "latency_ms": 1022.7275000070222
+    },
+    {
+      "id": "paperqa-045",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 874.1225999547169
+    },
+    {
+      "id": "paperqa-046",
+      "category": "terminology",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 0.5,
+      "context_words": 900,
+      "latency_ms": 980.9752000146545
+    },
+    {
+      "id": "paperqa-048",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 0.5,
+      "context_words": 900,
+      "latency_ms": 980.723200016655
+    },
+    {
+      "id": "paperqa-049",
+      "category": "terminology",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 0.5,
+      "context_words": 900,
+      "latency_ms": 911.0392999718897
+    },
+    {
+      "id": "paperqa-050",
+      "category": "numeric",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 981.2641000025906
+    },
+    {
+      "id": "paperqa-052",
+      "category": "terminology",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 1102.3348000016995
+    },
+    {
+      "id": "paperqa-053",
+      "category": "numeric",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 1002.5561000220478
+    },
+    {
+      "id": "paperqa-054",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 0.3333333333333333,
+      "context_words": 900,
+      "latency_ms": 931.6964000463486
+    },
+    {
+      "id": "paperqa-055",
+      "category": "terminology",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 0.25,
+      "context_words": 900,
+      "latency_ms": 898.0611999868415
+    },
+    {
+      "id": "paperqa-056",
+      "category": "numeric",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 987.5270000193268
+    },
+    {
+      "id": "paperqa-057",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 903.1622000038624
+    },
+    {
+      "id": "paperqa-058",
+      "category": "terminology",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 994.6149999741465
+    },
+    {
+      "id": "paperqa-060",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 1135.23419998819
+    },
+    {
+      "id": "paperqa-062",
+      "category": "cross_section",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.5,
+      "reciprocal_rank": 0.25,
+      "context_words": 900,
+      "latency_ms": 1009.1614999691956
+    },
+    {
+      "id": "paperqa-063",
+      "category": "cross_section",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 1355.4796999669634
+    },
+    {
+      "id": "paperqa-065",
+      "category": "cross_section",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 1003.017799986992
+    },
+    {
+      "id": "paperqa-069",
+      "category": "cross_section",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 0.5,
+      "context_words": 900,
+      "latency_ms": 1025.6552000064403
+    },
+    {
+      "id": "paperqa-070",
+      "category": "cross_section",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.5,
+      "reciprocal_rank": 0.3333333333333333,
+      "context_words": 900,
+      "latency_ms": 1400.89910000097
+    },
+    {
+      "id": "paperqa-071",
+      "category": "cross_paper",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.5,
+      "reciprocal_rank": 0.25,
+      "context_words": 900,
+      "latency_ms": 1027.753800037317
+    },
+    {
+      "id": "paperqa-072",
+      "category": "cross_paper",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.5,
+      "reciprocal_rank": 0.2,
+      "context_words": 900,
+      "latency_ms": 992.4559000064619
+    },
+    {
+      "id": "paperqa-073",
+      "category": "cross_paper",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.5,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 925.9323999867775
+    },
+    {
+      "id": "paperqa-075",
+      "category": "cross_paper",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 1093.805800017435
+    },
+    {
+      "id": "paperqa-078",
+      "category": "cross_paper",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 979.3650999781676
+    },
+    {
+      "id": "paperqa-079",
+      "category": "cross_paper",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 0.0,
+      "reciprocal_rank": 0,
+      "context_words": 824,
+      "latency_ms": 1167.551300022751
+    },
+    {
+      "id": "paperqa-081",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 1037.884599994868
+    },
+    {
+      "id": "paperqa-082",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 1123.7906999886036
+    },
+    {
+      "id": "paperqa-084",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 1017.6111999899149
+    },
+    {
+      "id": "paperqa-085",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 0.5,
+      "context_words": 900,
+      "latency_ms": 1223.563399980776
+    },
+    {
+      "id": "paperqa-087",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 0.5,
+      "context_words": 900,
+      "latency_ms": 987.0745000080206
+    },
+    {
+      "id": "paperqa-088",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 1141.5209000115283
+    },
+    {
+      "id": "paperqa-089",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 1.0,
+      "context_words": 900,
+      "latency_ms": 869.9636000092141
+    },
+    {
+      "id": "paperqa-090",
+      "category": "semantic",
+      "split": "test",
+      "answerable": true,
+      "evidence_recall": 1.0,
+      "reciprocal_rank": 0.2,
+      "context_words": 900,
+      "latency_ms": 1095.5507999751717
+    },
+    {
+      "id": "paperqa-091",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 951.3186000403948
+    },
+    {
+      "id": "paperqa-092",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 1115.5263999826275
+    },
+    {
+      "id": "paperqa-093",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 1139.1295000212267
+    },
+    {
+      "id": "paperqa-094",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 924.4982000091113
+    },
+    {
+      "id": "paperqa-096",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 1013.1889000185765
+    },
+    {
+      "id": "paperqa-098",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 1129.7796000144444
+    },
+    {
+      "id": "paperqa-100",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 961.3770000287332
+    },
+    {
+      "id": "paperqa-102",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 980.9096999815665
+    },
+    {
+      "id": "paperqa-104",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 947.8019999805838
+    },
+    {
+      "id": "paperqa-106",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 762,
+      "latency_ms": 937.1578000136651
+    },
+    {
+      "id": "paperqa-107",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 1186.4372999989428
+    },
+    {
+      "id": "paperqa-108",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 1022.8722000028938
+    },
+    {
+      "id": "paperqa-109",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 853,
+      "latency_ms": 880.7451000320725
+    },
+    {
+      "id": "paperqa-110",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 1112.1052000089549
+    },
+    {
+      "id": "paperqa-112",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 997.0799000002444
+    },
+    {
+      "id": "paperqa-115",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 1002.634999982547
+    },
+    {
+      "id": "paperqa-116",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 997.5224999943748
+    },
+    {
+      "id": "paperqa-117",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 937.9288000054657
+    },
+    {
+      "id": "paperqa-119",
+      "category": "unanswerable",
+      "split": "test",
+      "answerable": false,
+      "evidence_recall": null,
+      "reciprocal_rank": 0,
+      "context_words": 900,
+      "latency_ms": 1063.817200018093
+    }
+  ],
+  "by_category": {
+    "cross_paper": {
+      "question_count": 6,
+      "retrieval": {
+        "positive_count": 6,
+        "evidence_hit_rate": 0.5,
+        "evidence_recall": 0.25,
+        "complete_evidence_rate": 0,
+        "mrr": 0.24166666666666667,
+        "mean_context_words": 887.3333333333334
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": 0.0,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 6,
+        "p50_ms": 1010.1048500218894,
+        "p95_ms": 1167.551300022751
+      }
+    },
+    "cross_section": {
+      "question_count": 5,
+      "retrieval": {
+        "positive_count": 5,
+        "evidence_hit_rate": 0.8,
+        "evidence_recall": 0.6,
+        "complete_evidence_rate": 0.4,
+        "mrr": 0.4166666666666667,
+        "mean_context_words": 900
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": 0.0,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 5,
+        "p50_ms": 1025.6552000064403,
+        "p95_ms": 1400.89910000097
+      }
+    },
+    "numeric": {
+      "question_count": 12,
+      "retrieval": {
+        "positive_count": 12,
+        "evidence_hit_rate": 0.8333333333333334,
+        "evidence_recall": 0.8333333333333334,
+        "complete_evidence_rate": 0.8333333333333334,
+        "mrr": 0.75,
+        "mean_context_words": 891.5833333333334
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": 0.0,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 12,
+        "p50_ms": 989.9328500032425,
+        "p95_ms": 1207.8170000459068
+      }
+    },
+    "semantic": {
+      "question_count": 21,
+      "retrieval": {
+        "positive_count": 21,
+        "evidence_hit_rate": 0.8571428571428571,
+        "evidence_recall": 0.8571428571428571,
+        "complete_evidence_rate": 0.8571428571428571,
+        "mrr": 0.7158730158730159,
+        "mean_context_words": 885
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": 0.0,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 21,
+        "p50_ms": 1000.8119000121951,
+        "p95_ms": 1170.4173000180162
+      }
+    },
+    "terminology": {
+      "question_count": 12,
+      "retrieval": {
+        "positive_count": 12,
+        "evidence_hit_rate": 0.5,
+        "evidence_recall": 0.5,
+        "complete_evidence_rate": 0.5,
+        "mrr": 0.2986111111111111,
+        "mean_context_words": 893.6666666666666
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": 0.0,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 12,
+        "p50_ms": 976.7427500046324,
+        "p95_ms": 1105.7669000001624
+      }
+    },
+    "unanswerable": {
+      "question_count": 19,
+      "retrieval": {
+        "positive_count": 0,
+        "evidence_hit_rate": null,
+        "evidence_recall": null,
+        "complete_evidence_rate": null,
+        "mrr": null,
+        "mean_context_words": 890.2631578947369
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": null,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 19,
+        "p50_ms": 997.5224999943748,
+        "p95_ms": 1186.4372999989428
+      }
+    }
+  },
+  "by_split": {
+    "test": {
+      "question_count": 75,
+      "retrieval": {
+        "positive_count": 56,
+        "evidence_hit_rate": 0.7321428571428571,
+        "evidence_recall": 0.6875,
+        "complete_evidence_rate": 0.6428571428571429,
+        "mrr": 0.55625,
+        "mean_context_words": 889.96
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": 0.0,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 75,
+        "p50_ms": 997.0799000002444,
+        "p95_ms": 1207.8170000459068
+      }
+    }
+  },
+  "by_tag": {
+    "adversarial": {
+      "question_count": 1,
+      "retrieval": {
+        "positive_count": 0,
+        "evidence_hit_rate": null,
+        "evidence_recall": null,
+        "complete_evidence_rate": null,
+        "mrr": null,
+        "mean_context_words": 900
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": null,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 1,
+        "p50_ms": 1063.817200018093,
+        "p95_ms": 1063.817200018093
+      }
+    },
+    "ambiguous": {
+      "question_count": 2,
+      "retrieval": {
+        "positive_count": 0,
+        "evidence_hit_rate": null,
+        "evidence_recall": null,
+        "complete_evidence_rate": null,
+        "mrr": null,
+        "mean_context_words": 900
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": null,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 2,
+        "p50_ms": 999.8574499913957,
+        "p95_ms": 1002.634999982547
+      }
+    },
+    "cross_paper": {
+      "question_count": 6,
+      "retrieval": {
+        "positive_count": 6,
+        "evidence_hit_rate": 0.5,
+        "evidence_recall": 0.25,
+        "complete_evidence_rate": 0,
+        "mrr": 0.24166666666666667,
+        "mean_context_words": 887.3333333333334
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": 0.0,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 6,
+        "p50_ms": 1010.1048500218894,
+        "p95_ms": 1167.551300022751
+      }
+    },
+    "cross_section": {
+      "question_count": 5,
+      "retrieval": {
+        "positive_count": 5,
+        "evidence_hit_rate": 0.8,
+        "evidence_recall": 0.6,
+        "complete_evidence_rate": 0.4,
+        "mrr": 0.4166666666666667,
+        "mean_context_words": 900
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": 0.0,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 5,
+        "p50_ms": 1025.6552000064403,
+        "p95_ms": 1400.89910000097
+      }
+    },
+    "missing_detail": {
+      "question_count": 5,
+      "retrieval": {
+        "positive_count": 0,
+        "evidence_hit_rate": null,
+        "evidence_recall": null,
+        "complete_evidence_rate": null,
+        "mrr": null,
+        "mean_context_words": 863
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": null,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 5,
+        "p50_ms": 1022.8722000028938,
+        "p95_ms": 1186.4372999989428
+      }
+    },
+    "multi_evidence": {
+      "question_count": 11,
+      "retrieval": {
+        "positive_count": 11,
+        "evidence_hit_rate": 0.6363636363636364,
+        "evidence_recall": 0.4090909090909091,
+        "complete_evidence_rate": 0.18181818181818182,
+        "mrr": 0.3212121212121212,
+        "mean_context_words": 893.0909090909091
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": 0.0,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 11,
+        "p50_ms": 1025.6552000064403,
+        "p95_ms": 1400.89910000097
+      }
+    },
+    "near_domain": {
+      "question_count": 7,
+      "retrieval": {
+        "positive_count": 0,
+        "evidence_hit_rate": null,
+        "evidence_recall": null,
+        "complete_evidence_rate": null,
+        "mrr": null,
+        "mean_context_words": 900
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": null,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 7,
+        "p50_ms": 1013.1889000185765,
+        "p95_ms": 1139.1295000212267
+      }
+    },
+    "numeric": {
+      "question_count": 12,
+      "retrieval": {
+        "positive_count": 12,
+        "evidence_hit_rate": 0.8333333333333334,
+        "evidence_recall": 0.8333333333333334,
+        "complete_evidence_rate": 0.8333333333333334,
+        "mrr": 0.75,
+        "mean_context_words": 891.5833333333334
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": 0.0,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 12,
+        "p50_ms": 989.9328500032425,
+        "p95_ms": 1207.8170000459068
+      }
+    },
+    "out_of_domain": {
+      "question_count": 2,
+      "retrieval": {
+        "positive_count": 0,
+        "evidence_hit_rate": null,
+        "evidence_recall": null,
+        "complete_evidence_rate": null,
+        "mrr": null,
+        "mean_context_words": 900
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": null,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 2,
+        "p50_ms": 967.7256499999203,
+        "p95_ms": 997.5224999943748
+      }
+    },
+    "paraphrase": {
+      "question_count": 8,
+      "retrieval": {
+        "positive_count": 8,
+        "evidence_hit_rate": 1,
+        "evidence_recall": 1.0,
+        "complete_evidence_rate": 1,
+        "mrr": 0.775,
+        "mean_context_words": 900
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": 0.0,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 8,
+        "p50_ms": 1066.7176999850199,
+        "p95_ms": 1223.563399980776
+      }
+    },
+    "partial_comparison": {
+      "question_count": 2,
+      "retrieval": {
+        "positive_count": 0,
+        "evidence_hit_rate": null,
+        "evidence_recall": null,
+        "complete_evidence_rate": null,
+        "mrr": null,
+        "mean_context_words": 900
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": null,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 2,
+        "p50_ms": 964.3558499810752,
+        "p95_ms": 980.9096999815665
+      }
+    },
+    "semantic": {
+      "question_count": 21,
+      "retrieval": {
+        "positive_count": 21,
+        "evidence_hit_rate": 0.8571428571428571,
+        "evidence_recall": 0.8571428571428571,
+        "complete_evidence_rate": 0.8571428571428571,
+        "mrr": 0.7158730158730159,
+        "mean_context_words": 885
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": 0.0,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 21,
+        "p50_ms": 1000.8119000121951,
+        "p95_ms": 1170.4173000180162
+      }
+    },
+    "terminology": {
+      "question_count": 12,
+      "retrieval": {
+        "positive_count": 12,
+        "evidence_hit_rate": 0.5,
+        "evidence_recall": 0.5,
+        "complete_evidence_rate": 0.5,
+        "mrr": 0.2986111111111111,
+        "mean_context_words": 893.6666666666666
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": 0.0,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 12,
+        "p50_ms": 976.7427500046324,
+        "p95_ms": 1105.7669000001624
+      }
+    },
+    "unanswerable": {
+      "question_count": 19,
+      "retrieval": {
+        "positive_count": 0,
+        "evidence_hit_rate": null,
+        "evidence_recall": null,
+        "complete_evidence_rate": null,
+        "mrr": null,
+        "mean_context_words": 890.2631578947369
+      },
+      "answerability": null,
+      "generation": {
+        "judged_answer_count": 0,
+        "answer_accuracy": null,
+        "judgment_coverage": null,
+        "judged_citation_question_count": 0,
+        "citation_precision": null,
+        "judged_claim_question_count": 0,
+        "claim_support_rate": null
+      },
+      "latency": {
+        "measured_count": 19,
+        "p50_ms": 997.5224999943748,
+        "p95_ms": 1186.4372999989428
+      }
+    }
+  },
+  "metadata": {
+    "benchmark_version": "paperqa-evidence-v1",
+    "benchmark_sha256": "a672f7fa8d22ca2b8050b7b8c31cfdb006dfa5b5322527edc6c45d8eee9347dc",
+    "corpus_sha256": "27b43daa4f7ef09692976d286af56d5855b374b3f481693d51d8f72738d9f0e7",
+    "system_commit": "a533c29809ac4157361467f0b515f64cb78958c9",
+    "tracked_worktree_dirty": false,
+    "pipeline_sha256": "7a118393d7182007f5444906f486f12031a7e2aa7992c1129b60c0f7ba619f41",
+    "runner_sha256": "2115e211b0b6395a161c6110f86ba0e975a60f843a2f7626f6dc97ef42c09335",
+    "scorer_sha256": "9772c28a6f115c5524c3c310077c9767bbd56d5ff0c0ea7c6f5b70555049c6aa",
+    "system_name": "hybrid_rerank-c30",
+    "mode": "retrieval_only",
+    "retrieval_mode": "hybrid_rerank",
+    "candidate_k": 30,
+    "rrf_rank_constant": 60,
+    "app_matches_baseline": false,
+    "embedding_model": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+    "model_weights_sha256": "72fa4c1e63f204abd6e836344888ed5a4259d33f0fe48f272eb86febf776105a",
+    "model_max_seq_length": 512,
+    "model_tokenizer_sha256": "5e7245596b76f5be39d612babeceb40d409602d50ca759645966ccdb4a2caa30",
+    "stored_vector_max_abs_error": 1.1455267667770386e-07,
+    "vectors_verified": true,
+    "chunk_size_words": 180,
+    "chunk_overlap_words": 30,
+    "chunk_count": 731,
+    "split": "test",
+    "k": 5,
+    "max_context_words": 900,
+    "timestamp_utc": "2026-09-26T20:13:19.406060+00:00",
+    "python": "3.11.16",
+    "platform": "Windows-10-10.0.22621-SP0",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "postgresql": "16.15",
+    "dependencies": {
+      "torch": "2.14.0+cpu",
+      "sentence-transformers": "6.1.0",
+      "transformers": "5.17.0",
+      "pgvector": "0.5.0"
+    },
+    "latency_scope": "single warm run; query embedding + retrieval + optional reranking; excludes loading, diagnostics, scoring and generation",
+    "answerability_note": "No answer/abstain decisions: confusion matrix deliberately unavailable, not zero.",
+    "reranker_model": "cross-encoder/ms-marco-MiniLM-L6-v2",
+    "reranker_revision": "233902d25c440f23af6f7d6e94d2946bac0bee0a",
+    "reranker_weights_sha256": "a098851318a62334325a5aeb56f45eb1f4777de3264d5924f3874c1ff4ed2fd0",
+    "reranker_tokenizer_sha256": "5e7245596b76f5be39d612babeceb40d409602d50ca759645966ccdb4a2caa30",
+    "reranker_max_length": 512,
+    "reranker_batch_size": 16
+  },
+  "comparison": {
+    "retrieval_delta": {
+      "evidence_hit_rate": 0.125,
+      "evidence_recall": 0.1160714285714286,
+      "complete_evidence_rate": 0.1071428571428572,
+      "mrr": 0.24345238095238098
+    },
+    "improvements": [
+      "paperqa-002",
+      "paperqa-009",
+      "paperqa-021",
+      "paperqa-026",
+      "paperqa-045",
+      "paperqa-049",
+      "paperqa-060",
+      "paperqa-070",
+      "paperqa-073",
+      "paperqa-082",
+      "paperqa-089",
+      "paperqa-090"
+    ],
+    "regressions": [
+      "paperqa-016",
+      "paperqa-024",
+      "paperqa-040",
+      "paperqa-043",
+      "paperqa-063"
+    ],
+    "note": "Paired descriptive differences, not a statistical significance claim."
+  }
+}
